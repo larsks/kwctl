@@ -1,11 +1,11 @@
-package channel
+package types
 
 import (
 	"testing"
 )
 
 type (
-	TestItem struct {
+	ChannelTestItem struct {
 		raw    string
 		parsed Channel
 		valid  bool
@@ -13,7 +13,7 @@ type (
 )
 
 func TestParseChannel(t *testing.T) {
-	inputs := []TestItem{
+	inputs := []ChannelTestItem{
 		{
 			"101,0145090000,0,0,0,0,0,0,08,08,000,00000000,0,0000000000,0,1",
 			Channel{101, 145090000, 0, 0, 0, 0, 0, 0, 8, 8, 0, 0, 0, 0, 0, 1},
@@ -44,8 +44,9 @@ func TestParseChannel(t *testing.T) {
 		}
 	}
 }
+
 func TestStringifyChannel(t *testing.T) {
-	inputs := []TestItem{
+	inputs := []ChannelTestItem{
 		{
 			"101,0145090000,0,0,0,0,0,0,08,08,000,00000000,0,0000000000,0,1",
 			Channel{101, 145090000, 0, 0, 0, 0, 0, 0, 8, 8, 0, 0, 0, 0, 0, 1},
