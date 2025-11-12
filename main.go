@@ -175,6 +175,23 @@ func (r *Radio) Check() error {
 	return nil
 }
 
+func (r *Radio) VFO(vfo ...string) (string, error) {
+	var response string
+	var err error
+
+	if len(vfo) == 0 {
+		response, err = r.SendCommand("BC")
+	} else {
+		response, err = r.SendCommand("BC", vfo[0], vfo[0])
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("failed to select vfo: %w", err)
+	}
+
+	return response, nil
+}
+
 // Power gets or sets the power level on the specified VFO
 // setting can be "high", "medium", or "low"
 // Returns the current power level as a human-readable string
@@ -310,6 +327,22 @@ func main() {
 		result, err := radio.Channel(config.vfo, commandArgs...)
 		if err != nil {
 			logger.Error("channel command failed", "error", err)
+			os.Exit(1)
+		}
+		fmt.Println(result)
+
+	case "id":
+		result, err := radio.ID()
+		if err != nil {
+			logger.Error("id command failed", "error", err)
+			os.Exit(1)
+		}
+		fmt.Println(result)
+
+	case "vfo":
+		result, err := radio.VFO(commandArgs...)
+		if err != nil {
+			logger.Error("id command failed", "error", err)
 			os.Exit(1)
 		}
 		fmt.Println(result)
