@@ -242,3 +242,185 @@ func TestSendCommand_TimeoutDuringBufferFlush(t *testing.T) {
 		t.Errorf("expected result 'TM-V71', got '%s'", result)
 	}
 }
+
+func TestPower_Get(t *testing.T) {
+	mock := &mockPort{
+		flushData: []byte("?\r"),
+		readData:  []byte("PC 0,2\r"),
+	}
+	radio := &Radio{
+		device: "/dev/null",
+		port:   mock,
+	}
+
+	result, err := radio.Power("0")
+	if err != nil {
+		t.Fatalf("Power failed: %v", err)
+	}
+
+	if result != "low" {
+		t.Errorf("expected 'low', got '%s'", result)
+	}
+
+	// Verify command was sent correctly
+	expectedWrite := []byte("\rPC 0\r")
+	if string(mock.writeData) != string(expectedWrite) {
+		t.Errorf("expected write data '%s', got '%s'", expectedWrite, mock.writeData)
+	}
+}
+
+func TestPower_SetHigh(t *testing.T) {
+	mock := &mockPort{
+		flushData: []byte("?\r"),
+		readData:  []byte("PC 0,0\r"),
+	}
+	radio := &Radio{
+		device: "/dev/null",
+		port:   mock,
+	}
+
+	result, err := radio.Power("0", "high")
+	if err != nil {
+		t.Fatalf("Power failed: %v", err)
+	}
+
+	if result != "high" {
+		t.Errorf("expected 'high', got '%s'", result)
+	}
+
+	// Verify command was sent correctly
+	expectedWrite := []byte("\rPC 0,0\r")
+	if string(mock.writeData) != string(expectedWrite) {
+		t.Errorf("expected write data '%s', got '%s'", expectedWrite, mock.writeData)
+	}
+}
+
+func TestPower_SetMedium(t *testing.T) {
+	mock := &mockPort{
+		flushData: []byte("?\r"),
+		readData:  []byte("PC 1,1\r"),
+	}
+	radio := &Radio{
+		device: "/dev/null",
+		port:   mock,
+	}
+
+	result, err := radio.Power("1", "medium")
+	if err != nil {
+		t.Fatalf("Power failed: %v", err)
+	}
+
+	if result != "medium" {
+		t.Errorf("expected 'medium', got '%s'", result)
+	}
+}
+
+func TestPower_InvalidSetting(t *testing.T) {
+	mock := &mockPort{
+		flushData: []byte("?\r"),
+		readData:  []byte("PC 0,0\r"),
+	}
+	radio := &Radio{
+		device: "/dev/null",
+		port:   mock,
+	}
+
+	_, err := radio.Power("0", "invalid")
+	if err == nil {
+		t.Fatal("expected error for invalid power setting")
+	}
+}
+
+func TestChannel_Get(t *testing.T) {
+	mock := &mockPort{
+		flushData: []byte("?\r"),
+		readData:  []byte("MR 0,042\r"),
+	}
+	radio := &Radio{
+		device: "/dev/null",
+		port:   mock,
+	}
+
+	result, err := radio.Channel("0")
+	if err != nil {
+		t.Fatalf("Channel failed: %v", err)
+	}
+
+	if result != "042" {
+		t.Errorf("expected '042', got '%s'", result)
+	}
+
+	// Verify command was sent correctly
+	expectedWrite := []byte("\rMR 0\r")
+	if string(mock.writeData) != string(expectedWrite) {
+		t.Errorf("expected write data '%s', got '%s'", expectedWrite, mock.writeData)
+	}
+}
+
+func TestChannel_Set(t *testing.T) {
+	mock := &mockPort{
+		flushData: []byte("?\r"),
+		readData:  []byte("MR 1,123\r"),
+	}
+	radio := &Radio{
+		device: "/dev/null",
+		port:   mock,
+	}
+
+	result, err := radio.Channel("1", "123")
+	if err != nil {
+		t.Fatalf("Channel failed: %v", err)
+	}
+
+	if result != "123" {
+		t.Errorf("expected '123', got '%s'", result)
+	}
+
+	// Verify command was sent correctly with zero-padding
+	expectedWrite := []byte("\rMR 1,123\r")
+	if string(mock.writeData) != string(expectedWrite) {
+		t.Errorf("expected write data '%s', got '%s'", expectedWrite, mock.writeData)
+	}
+}
+
+func TestChannel_SetWithPadding(t *testing.T) {
+	mock := &mockPort{
+		flushData: []byte("?\r"),
+		readData:  []byte("MR 0,005\r"),
+	}
+	radio := &Radio{
+		device: "/dev/null",
+		port:   mock,
+	}
+
+	result, err := radio.Channel("0", "5")
+	if err != nil {
+		t.Fatalf("Channel failed: %v", err)
+	}
+
+	if result != "005" {
+		t.Errorf("expected '005', got '%s'", result)
+	}
+
+	// Verify command was sent with zero-padding
+	expectedWrite := []byte("\rMR 0,005\r")
+	if string(mock.writeData) != string(expectedWrite) {
+		t.Errorf("expected write data '%s', got '%s'", expectedWrite, mock.writeData)
+	}
+}
+
+func TestChannel_InvalidNumber(t *testing.T) {
+	mock := &mockPort{
+		flushData: []byte("?\r"),
+		readData:  []byte("MR 0,005\r"),
+	}
+	radio := &Radio{
+		device: "/dev/null",
+		port:   mock,
+	}
+
+	_, err := radio.Channel("0", "abc")
+	if err == nil {
+		t.Fatal("expected error for invalid channel number")
+	}
+}
