@@ -1,6 +1,7 @@
 package radio
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -18,6 +19,9 @@ type (
 		logger *slog.Logger
 	}
 )
+
+var ErrInvalidCommand = errors.New("invalid command")
+var ErrUnavailableCommand = errors.New("command unavailable")
 
 func NewRadio(device string, bitrate int) *Radio {
 	return &Radio{
@@ -125,12 +129,13 @@ func (r *Radio) SendCommand(cmd string, args ...string) (string, error) {
 
 	// Step 4: Parse response (format: "CMD ARG1,ARG2,...")
 	responseStr := string(response)
+	r.logger.Debug("raw response", "response", responseStr)
 
 	if responseStr == "?" {
-		return "", fmt.Errorf("command failed")
+		return "", ErrInvalidCommand
 	}
 	if responseStr == "N" {
-		return "", fmt.Errorf("command cannot run at this time")
+		return "", ErrUnavailableCommand
 	}
 	parts := strings.SplitN(responseStr, " ", 2)
 	if len(parts) < 2 {
