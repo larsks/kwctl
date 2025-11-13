@@ -11,7 +11,9 @@ import (
 )
 
 type (
-	ModeCommand struct{}
+	ModeCommand struct {
+		flags *flag.FlagSet
+	}
 )
 
 func init() {
@@ -33,21 +35,25 @@ var modeNumbers map[string]string = map[string]string{
 	"3": "wx",
 }
 
-func (c ModeCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
-	flags := flag.NewFlagSet("mode", flag.ContinueOnError)
-	if err := flags.Parse(args); err != nil {
+func (c *ModeCommand) Init() error {
+	c.flags = flag.NewFlagSet("mode", flag.ContinueOnError)
+	return nil
+}
+
+func (c *ModeCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+	if err := c.flags.Parse(args); err != nil {
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
 	var res string
 	var err error
 
-	if flags.NArg() == 0 {
+	if c.flags.NArg() == 0 {
 		res, err = r.SendCommand("VM", ctx.Config.Vfo)
 	} else {
-		num, exists := modeNames[flags.Arg(0)]
+		num, exists := modeNames[c.flags.Arg(0)]
 		if !exists {
-			return "", fmt.Errorf("unknown mode: %s", flags.Arg(0))
+			return "", fmt.Errorf("unknown mode: %s", c.flags.Arg(0))
 		}
 
 		res, err = r.SendCommand("VM", ctx.Config.Vfo, num)

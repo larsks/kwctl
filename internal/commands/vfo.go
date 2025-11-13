@@ -11,26 +11,32 @@ import (
 )
 
 type (
-	VFOCommand struct{}
+	VFOCommand struct {
+		flags *flag.FlagSet
+	}
 )
 
 func init() {
 	Register("vfo", &VFOCommand{})
 }
 
-func (c VFOCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
-	flags := flag.NewFlagSet("vfo", flag.ContinueOnError)
-	if err := flags.Parse(args); err != nil {
+func (c *VFOCommand) Init() error {
+	c.flags = flag.NewFlagSet("vfo", flag.ContinueOnError)
+	return nil
+}
+
+func (c *VFOCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+	if err := c.flags.Parse(args); err != nil {
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
 	var res string
 	var err error
 
-	if flags.NArg() == 0 {
+	if c.flags.NArg() == 0 {
 		res, err = r.SendCommand("BC")
 	} else {
-		res, err = r.SendCommand("BC", flags.Arg(0), flags.Arg(0))
+		res, err = r.SendCommand("BC", c.flags.Arg(0), c.flags.Arg(0))
 	}
 
 	if err != nil {

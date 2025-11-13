@@ -11,7 +11,9 @@ import (
 )
 
 type (
-	BandsCommand struct{}
+	BandsCommand struct {
+		flags *flag.FlagSet
+	}
 )
 
 var bandsNames map[string]string = map[string]string{
@@ -28,22 +30,26 @@ func init() {
 	Register("bands", &BandsCommand{})
 }
 
-func (c BandsCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
-	flags := flag.NewFlagSet("bands", flag.ContinueOnError)
-	if err := flags.Parse(args); err != nil {
+func (c *BandsCommand) Init() error {
+	c.flags = flag.NewFlagSet("bands", flag.ContinueOnError)
+	return nil
+}
+
+func (c *BandsCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+	if err := c.flags.Parse(args); err != nil {
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
 	var res string
 	var err error
 
-	if flags.NArg() == 0 {
+	if c.flags.NArg() == 0 {
 		// Get current power
 		res, err = r.SendCommand("DL")
 	} else {
-		num, exists := bandsNames[flags.Arg(0)]
+		num, exists := bandsNames[c.flags.Arg(0)]
 		if !exists {
-			return "", fmt.Errorf("unknown bands mode: %s", flags.Arg(0))
+			return "", fmt.Errorf("unknown bands mode: %s", c.flags.Arg(0))
 		}
 		res, err = r.SendCommand("DL", num)
 	}

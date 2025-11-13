@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -15,9 +16,15 @@ import (
 )
 
 type (
-	ChannelCommand     struct{}
-	ChannelListCommand struct{}
-	ChannelEditCommand struct{}
+	ChannelCommand struct {
+		flags *flag.FlagSet
+	}
+	ChannelListCommand struct {
+		flags *flag.FlagSet
+	}
+	ChannelEditCommand struct {
+		flags *flag.FlagSet
+	}
 )
 
 func init() {
@@ -26,13 +33,33 @@ func init() {
 	Register("channel-edit", &ChannelEditCommand{}, "edit")
 }
 
-func (c ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
-	flags := flag.NewFlagSet("channel", flag.ContinueOnError)
-	if err := flags.Parse(args); err != nil {
+//nolint:errcheck
+func (c *ChannelListCommand) Init() error {
+	c.flags = flag.NewFlagSet("channel-list", flag.ContinueOnError)
+	c.flags.SetOutput(os.Stdout)
+	c.flags.Usage = func() {
+		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+			Usage: kwctl channel-list [options] <range> [<range> [...]]
+
+			List a range of channels.
+
+			Arguments:
+				range      A range specification (e.g. "1", "1-10", "1,5,10,15,20")
+
+			Options:
+			`))
+		c.flags.PrintDefaults()
+	}
+
+	return nil
+}
+
+func (c *ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+	if err := c.flags.Parse(args); err != nil {
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
-	for _, arg := range flags.Args() {
+	for _, arg := range c.flags.Args() {
 		for channel, err := range helpers.RangeIterator(arg) {
 			if err != nil {
 				return "", fmt.Errorf("invalid range: %w", err)
@@ -80,13 +107,56 @@ func (c ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []strin
 	return "", nil
 }
 
-func (c ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+//nolint:errcheck
+func (c *ChannelEditCommand) Init() error {
+	c.flags = flag.NewFlagSet("channel-edit", flag.ContinueOnError)
+	c.flags.SetOutput(os.Stdout)
+	c.flags.Usage = func() {
+		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+			Usage: kwctl channel-edit [options] <channel>
+
+			Edit channel configuration.
+
+			Arguments:
+				channel    Channel number to edit (0-999)
+
+			Options:
+			`))
+		c.flags.PrintDefaults()
+	}
+	return nil
+}
+
+func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+	if err := c.flags.Parse(args); err != nil {
+		return "", fmt.Errorf("command failed: %w", err)
+	}
+
 	return "", nil
 }
 
+//nolint:errcheck
+func (c *ChannelCommand) Init() error {
+	c.flags = flag.NewFlagSet("channel", flag.ContinueOnError)
+	c.flags.SetOutput(os.Stdout)
+	c.flags.Usage = func() {
+		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+			Usage: kwctl channel [options] [<channel>|up|down]
+
+			Get or set the current channel.
+
+			Arguments:
+				channel    Channel number (0-999) or 'up'/'down' to increment/decrement
+
+			Options:
+		`))
+		c.flags.PrintDefaults()
+	}
+	return nil
+}
+
 func (c ChannelCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
-	flags := flag.NewFlagSet("channel", flag.ContinueOnError)
-	if err := flags.Parse(args); err != nil {
+	if err := c.flags.Parse(args); err != nil {
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
@@ -94,11 +164,11 @@ func (c ChannelCommand) Run(r *radio.Radio, ctx config.Context, args []string) (
 	var err error
 	var channelNum int
 
-	if flags.NArg() == 0 {
+	if c.flags.NArg() == 0 {
 		// Get current channel
 		res, err = r.SendCommand("MR", ctx.Config.Vfo)
 	} else {
-		channel := flags.Arg(0)
+		channel := c.flags.Arg(0)
 
 		if channel == "up" || channel == "down" {
 			res, err := r.SendCommand("MR", ctx.Config.Vfo)

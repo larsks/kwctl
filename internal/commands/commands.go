@@ -9,6 +9,7 @@ import (
 
 type (
 	Command interface {
+		Init() error
 		Run(r *radio.Radio, ctx config.Context, args []string) (string, error)
 	}
 )
@@ -19,6 +20,10 @@ func Register(name string, command Command, aliases ...string) {
 	if _, exists := commands[name]; exists {
 		slog.Error("ignoring duplicate registration", "command", name)
 		return
+	}
+
+	if err := command.Init(); err != nil {
+		slog.Error("failed to initialize command", "command", name)
 	}
 
 	commands[name] = command
