@@ -14,6 +14,19 @@ type (
 	PowerCommand struct{}
 )
 
+var powerNames map[string]string = map[string]string{
+	"high":   "0",
+	"medium": "1",
+	"med":    "1",
+	"low":    "2",
+}
+
+var powerNumbers map[string]string = map[string]string{
+	"0": "high",
+	"1": "medium",
+	"2": "low",
+}
+
 func init() {
 	Register("power", &PowerCommand{})
 }
@@ -24,47 +37,35 @@ func (c PowerCommand) Run(r *radio.Radio, ctx config.Context, args []string) (st
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
-	var response string
+	var res string
 	var err error
 
 	if flags.NArg() == 0 {
 		// Get current power
-		response, err = r.SendCommand("PC", ctx.Config.Vfo)
+		res, err = r.SendCommand("PC", ctx.Config.Vfo)
 	} else {
-		// Set power - map string to integer
-		var powerVal string
-		switch flags.Arg(0) {
-		case "high":
-			powerVal = "0"
-		case "medium":
-			powerVal = "1"
-		case "low":
-			powerVal = "2"
-		default:
-			return "", fmt.Errorf("invalid power setting: %s (must be high, medium, or low)", flags.Arg(0))
+		num, exists := powerNames[flags.Arg(0)]
+		if !exists {
+			return "", fmt.Errorf("unknown power: %s", flags.Arg(0))
 		}
-		response, err = r.SendCommand("PC", ctx.Config.Vfo, powerVal)
+		res, err = r.SendCommand("PC", ctx.Config.Vfo, num)
 	}
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("power command failed: %w", err)
 	}
 
 	// Parse response: "vfo,power"
-	parts := strings.Split(response, ",")
+	parts := strings.Split(res, ",")
 	if len(parts) < 2 {
-		return "", fmt.Errorf("unexpected response format: %s", response)
+		return "", fmt.Errorf("invalid response: %s", res)
 	}
 
 	// Map power value to human-readable string
-	switch parts[1] {
-	case "0":
-		return "high", nil
-	case "1":
-		return "medium", nil
-	case "2":
-		return "low", nil
-	default:
-		return "", fmt.Errorf("unknown power value: %s", parts[1])
+	name, exists := powerNumbers[parts[1]]
+	if !exists {
+		return "", fmt.Errorf("unknown power: %s", res)
 	}
+
+	return name, nil
 }
