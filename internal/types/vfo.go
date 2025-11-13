@@ -91,6 +91,42 @@ func (v VFO) Serialize() string {
 	)
 }
 
+// MarshalJSON implements custom JSON marshaling with human-friendly values
+func (v VFO) MarshalJSON() ([]byte, error) {
+	// Create a struct with human-friendly representations
+	humanFriendly := struct {
+		VFO       int    `json:"VFO"`
+		RxFreq    string `json:"RxFreq"`
+		RxStep    string `json:"RxStep"`
+		Shift     int    `json:"Shift"`
+		Reverse   int    `json:"Reverse"`
+		Tone      int    `json:"Tone"`
+		CTCSS     int    `json:"CTCSS"`
+		DCS       int    `json:"DCS"`
+		ToneFreq  int    `json:"ToneFreq"`
+		CTCSSFreq int    `json:"CTCSSFreq"`
+		DCSFreq   int    `json:"DCSFreq"`
+		Offset    string `json:"Offset"`
+		Mode      string `json:"Mode"`
+	}{
+		VFO:       v.VFO,
+		RxFreq:    NewFrequencyMHz(&v.RxFreq).String(),
+		RxStep:    NewStepSize(&v.RxStep).String(),
+		Shift:     v.Shift,
+		Reverse:   v.Reverse,
+		Tone:      v.Tone,
+		CTCSS:     v.CTCSS,
+		DCS:       v.DCS,
+		ToneFreq:  v.ToneFreq,
+		CTCSSFreq: v.CTCSSFreq,
+		DCSFreq:   v.DCSFreq,
+		Offset:    NewFrequencyMHz(&v.Offset).String(),
+		Mode:      NewMode(&v.Mode).String(),
+	}
+
+	return json.Marshal(humanFriendly)
+}
+
 // FO 1,0145090000,0,0,0,0,0,0,08,08,000,00000000,0
 func (v VFO) String() string {
 	s, _ := json.MarshalIndent(v, "", "  ")
