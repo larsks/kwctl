@@ -37,6 +37,7 @@ func (c TuneCommand) Run(r *radio.Radio, ctx config.Context, args []string) (str
 	flags.VarP(types.NewFrequencyMHz(&vfo.RxFreq), "rxfreq", "r", "frequency in MHz (e.g., 144.39)")
 	flags.VarP(types.NewStepSize(&vfo.RxStep), "rxstep", "s", "step size in hz (e.g., 5)")
 	flags.VarP(types.NewMode(&vfo.Mode), "mode", "m", "Mode (FM, NFM, AM)")
+	flags.VarP(types.NewShift(&vfo.Shift), "shift", "t", "Shift (simplex, up, down)")
 	if err := flags.Parse(args); err != nil {
 		return "", fmt.Errorf("command failed: %w", err)
 	}
