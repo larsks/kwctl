@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -59,6 +60,7 @@ func main() {
 	args := flag.Args()
 	if len(args) == 0 {
 		ctx.Logger.Error("no command specified")
+		showHelp(os.Stderr)
 		os.Exit(1)
 	}
 
@@ -81,6 +83,9 @@ func main() {
 
 		res, err := handler.Run(r, ctx, commandArgs)
 		if err != nil {
+			if errors.Is(err, flag.ErrHelp) {
+				return
+			}
 			ctx.Logger.Error("command failed", "command", command, "error", err)
 			os.Exit(1)
 		}
