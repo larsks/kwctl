@@ -11,28 +11,28 @@ import (
 )
 
 type (
-	PowerCommand struct{}
+	TxPowerCommand struct{}
 )
 
-var powerNames map[string]string = map[string]string{
+var txpowerNames map[string]string = map[string]string{
 	"high":   "0",
 	"medium": "1",
 	"med":    "1",
 	"low":    "2",
 }
 
-var powerNumbers map[string]string = map[string]string{
+var txpowerNumbers map[string]string = map[string]string{
 	"0": "high",
 	"1": "medium",
 	"2": "low",
 }
 
 func init() {
-	Register("power", &PowerCommand{})
+	Register("txpower", &TxPowerCommand{})
 }
 
-func (c PowerCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
-	flags := flag.NewFlagSet("power", flag.ContinueOnError)
+func (c TxPowerCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+	flags := flag.NewFlagSet("txpower", flag.ContinueOnError)
 	if err := flags.Parse(args); err != nil {
 		return "", fmt.Errorf("command failed: %w", err)
 	}
@@ -41,30 +41,30 @@ func (c PowerCommand) Run(r *radio.Radio, ctx config.Context, args []string) (st
 	var err error
 
 	if flags.NArg() == 0 {
-		// Get current power
+		// Get current txpower
 		res, err = r.SendCommand("PC", ctx.Config.Vfo)
 	} else {
-		num, exists := powerNames[flags.Arg(0)]
+		num, exists := txpowerNames[flags.Arg(0)]
 		if !exists {
-			return "", fmt.Errorf("unknown power: %s", flags.Arg(0))
+			return "", fmt.Errorf("unknown txpower: %s", flags.Arg(0))
 		}
 		res, err = r.SendCommand("PC", ctx.Config.Vfo, num)
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("power command failed: %w", err)
+		return "", fmt.Errorf("txpower command failed: %w", err)
 	}
 
-	// Parse response: "vfo,power"
+	// Parse response: "vfo,txpower"
 	parts := strings.Split(res, ",")
 	if len(parts) < 2 {
 		return "", fmt.Errorf("invalid response: %s", res)
 	}
 
-	// Map power value to human-readable string
-	name, exists := powerNumbers[parts[1]]
+	// Map txpower value to human-readable string
+	name, exists := txpowerNumbers[parts[1]]
 	if !exists {
-		return "", fmt.Errorf("unknown power: %s", res)
+		return "", fmt.Errorf("unknown txpower: %s", res)
 	}
 
 	return name, nil
