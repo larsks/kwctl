@@ -2,11 +2,13 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
+	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
 )
 
@@ -30,8 +32,20 @@ func init() {
 	Register("bands", &BandsCommand{})
 }
 
+//nolint:errcheck
 func (c *BandsCommand) Init() error {
 	c.flags = flag.NewFlagSet("bands", flag.ContinueOnError)
+	c.flags.SetOutput(os.Stdout)
+	c.flags.Usage = func() {
+		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+			Usage: kwctl bands [dual|single]
+
+			Select dual or single band mode.
+
+			Options:
+		`))
+	}
+	c.flags.PrintDefaults()
 	return nil
 }
 

@@ -2,11 +2,13 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
+	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
 )
 
@@ -20,8 +22,20 @@ func init() {
 	Register("vfo", &VFOCommand{})
 }
 
+//nolint:errcheck
 func (c *VFOCommand) Init() error {
 	c.flags = flag.NewFlagSet("vfo", flag.ContinueOnError)
+	c.flags.SetOutput(os.Stdout)
+	c.flags.Usage = func() {
+		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+			Usage: kwctl vfo [0|1]
+
+			Select ptt/control VFO.
+
+			Options:
+		`))
+		c.flags.PrintDefaults()
+	}
 	return nil
 }
 
