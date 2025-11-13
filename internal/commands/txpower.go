@@ -11,7 +11,9 @@ import (
 )
 
 type (
-	TxPowerCommand struct{}
+	TxPowerCommand struct {
+		flags *flag.FlagSet
+	}
 )
 
 var txpowerNames map[string]string = map[string]string{
@@ -31,22 +33,26 @@ func init() {
 	Register("txpower", &TxPowerCommand{})
 }
 
-func (c TxPowerCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
-	flags := flag.NewFlagSet("txpower", flag.ContinueOnError)
-	if err := flags.Parse(args); err != nil {
+func (c *TxPowerCommand) Init() error {
+	c.flags = flag.NewFlagSet("txpower", flag.ContinueOnError)
+	return nil
+}
+
+func (c *TxPowerCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+	if err := c.flags.Parse(args); err != nil {
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
 	var res string
 	var err error
 
-	if flags.NArg() == 0 {
+	if c.flags.NArg() == 0 {
 		// Get current txpower
 		res, err = r.SendCommand("PC", ctx.Config.Vfo)
 	} else {
-		num, exists := txpowerNames[flags.Arg(0)]
+		num, exists := txpowerNames[c.flags.Arg(0)]
 		if !exists {
-			return "", fmt.Errorf("unknown txpower: %s", flags.Arg(0))
+			return "", fmt.Errorf("unknown txpower: %s", c.flags.Arg(0))
 		}
 		res, err = r.SendCommand("PC", ctx.Config.Vfo, num)
 	}
