@@ -36,6 +36,7 @@ func (c TuneCommand) Run(r *radio.Radio, ctx config.Context, args []string) (str
 	flags.BoolVarP(&forceVfoMode, "force", "f", false, "change to vfo mode before tuning")
 	flags.VarP(types.NewFrequencyMHz(&vfo.RxFreq), "rxfreq", "r", "frequency in MHz (e.g., 144.39)")
 	flags.VarP(types.NewStepSize(&vfo.RxStep), "rxstep", "s", "step size in hz (e.g., 5)")
+	flags.VarP(types.NewMode(&vfo.Mode), "mode", "m", "Mode (FM, NFM, AM)")
 	if err := flags.Parse(args); err != nil {
 		return "", fmt.Errorf("command failed: %w", err)
 	}
