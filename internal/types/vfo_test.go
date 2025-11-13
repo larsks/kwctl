@@ -35,7 +35,7 @@ func TestParseVFO(t *testing.T) {
 	}
 }
 
-func TestStringifyVFO(t *testing.T) {
+func TestSerializeVFO(t *testing.T) {
 	inputs := []VFOTestItem{
 		{
 			"1,0145090000,0,0,0,0,0,0,08,08,000,00000000,0",
@@ -45,7 +45,7 @@ func TestStringifyVFO(t *testing.T) {
 	}
 
 	for _, input := range inputs {
-		raw := input.parsed.String()
+		raw := input.parsed.Serialize()
 		if raw != input.raw {
 			t.Errorf("have %s, expected %s", raw, input.raw)
 		}
