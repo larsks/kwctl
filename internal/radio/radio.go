@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -135,12 +134,8 @@ func (r *Radio) SendCommand(cmd string, args ...string) (string, error) {
 	return parts[1], nil
 }
 
-func (r *Radio) ID() (string, error) {
-	return r.SendCommand("ID")
-}
-
 func (r *Radio) Check() error {
-	id, err := r.ID()
+	id, err := r.SendCommand("ID")
 	if err != nil {
 		return fmt.Errorf("failed to identify radio at %s: %w", r.device, err)
 	}
@@ -150,102 +145,4 @@ func (r *Radio) Check() error {
 	}
 
 	return nil
-}
-
-func (r *Radio) VFO(vfo ...string) (string, error) {
-	var response string
-	var err error
-
-	if len(vfo) == 0 {
-		response, err = r.SendCommand("BC")
-	} else {
-		response, err = r.SendCommand("BC", vfo[0], vfo[0])
-	}
-
-	if err != nil {
-		return "", fmt.Errorf("failed to select vfo: %w", err)
-	}
-
-	return response, nil
-}
-
-// Power gets or sets the power level on the specified VFO
-// setting can be "high", "medium", or "low"
-// Returns the current power level as a human-readable string
-func (r *Radio) Power(vfo string, setting ...string) (string, error) {
-	var response string
-	var err error
-
-	if len(setting) == 0 {
-		// Get current power
-		response, err = r.SendCommand("PC", vfo)
-	} else {
-		// Set power - map string to integer
-		var powerVal string
-		switch setting[0] {
-		case "high":
-			powerVal = "0"
-		case "medium":
-			powerVal = "1"
-		case "low":
-			powerVal = "2"
-		default:
-			return "", fmt.Errorf("invalid power setting: %s (must be high, medium, or low)", setting[0])
-		}
-		response, err = r.SendCommand("PC", vfo, powerVal)
-	}
-
-	if err != nil {
-		return "", err
-	}
-
-	// Parse response: "vfo,power"
-	parts := strings.Split(response, ",")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("unexpected response format: %s", response)
-	}
-
-	// Map power value to human-readable string
-	switch parts[1] {
-	case "0":
-		return "high", nil
-	case "1":
-		return "medium", nil
-	case "2":
-		return "low", nil
-	default:
-		return "", fmt.Errorf("unknown power value: %s", parts[1])
-	}
-}
-
-// Channel gets or sets the channel on the specified VFO
-// Returns the current channel number
-func (r *Radio) Channel(vfo string, channel ...string) (string, error) {
-	var response string
-	var err error
-
-	if len(channel) == 0 {
-		// Get current channel
-		response, err = r.SendCommand("MR", vfo)
-	} else {
-		// Set channel - zero-pad to 3 digits
-		channelNum, parseErr := strconv.Atoi(channel[0])
-		if parseErr != nil {
-			return "", fmt.Errorf("invalid channel number: %s", channel[0])
-		}
-		paddedChannel := fmt.Sprintf("%03d", channelNum)
-		response, err = r.SendCommand("MR", vfo, paddedChannel)
-	}
-
-	if err != nil {
-		return "", err
-	}
-
-	// Parse response: "vfo,channel"
-	parts := strings.Split(response, ",")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("unexpected response format: %s", response)
-	}
-
-	return parts[1], nil
 }
