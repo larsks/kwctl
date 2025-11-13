@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 
 	"go.bug.st/serial"
@@ -64,6 +65,26 @@ func (r *Radio) Close() error {
 	return nil
 }
 
+// drainWithRetry wraps port.Drain() with retry logic to handle EINTR errors.
+// EINTR (interrupted system call) can occur when the ioctl syscall used by
+// Drain() is interrupted by signals, particularly SIGURG from Go's runtime
+// scheduler (used for goroutine preemption since Go 1.14).
+func (r *Radio) drainWithRetry() error {
+	const maxRetries = 10
+	for i := 0; i < maxRetries; i++ {
+		err := r.port.Drain()
+		if err == nil {
+			return nil
+		}
+		// Retry only on EINTR; return all other errors immediately
+		if !errors.Is(err, syscall.EINTR) {
+			return err
+		}
+		// EINTR received, retry the operation
+	}
+	return fmt.Errorf("drain failed after %d retries", maxRetries)
+}
+
 func (r *Radio) SendCommand(cmd string, args ...string) (string, error) {
 	// Step 1: Clear the serial port by sending a carriage return and discarding response
 	if _, err := r.port.Write([]byte("\r")); err != nil {
@@ -71,7 +92,7 @@ func (r *Radio) SendCommand(cmd string, args ...string) (string, error) {
 	}
 
 	// Ensure data is actually sent to the device
-	if err := r.port.Drain(); err != nil {
+	if err := r.drainWithRetry(); err != nil {
 		return "", fmt.Errorf("failed to flush %s: %w", r.device, err)
 	}
 
@@ -100,7 +121,7 @@ func (r *Radio) SendCommand(cmd string, args ...string) (string, error) {
 	}
 
 	// Ensure command is actually sent to the device
-	if err := r.port.Drain(); err != nil {
+	if err := r.drainWithRetry(); err != nil {
 		return "", fmt.Errorf("failed to flush %s: %w", r.device, err)
 	}
 
