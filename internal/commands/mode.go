@@ -44,10 +44,6 @@ func (c ModeCommand) Run(r *radio.Radio, ctx config.Context, args []string) (str
 
 	if flags.NArg() == 0 {
 		res, err = r.SendCommand("VM", ctx.Config.Vfo)
-		if err != nil {
-			return "", fmt.Errorf("vm command failed: %w", err)
-		}
-
 	} else {
 		num, exists := modeNames[flags.Arg(0)]
 		if !exists {
@@ -55,9 +51,10 @@ func (c ModeCommand) Run(r *radio.Radio, ctx config.Context, args []string) (str
 		}
 
 		res, err = r.SendCommand("VM", ctx.Config.Vfo, num)
-		if err != nil {
-			return "", fmt.Errorf("vm command failed: %w", err)
-		}
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("mode command failed: %w", err)
 	}
 
 	parts := strings.Split(res, ",")
