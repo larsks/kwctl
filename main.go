@@ -8,23 +8,13 @@ import (
 
 	flag "github.com/spf13/pflag"
 
+	"github.com/larsks/kwctl/internal/commands"
+	"github.com/larsks/kwctl/internal/config"
 	"github.com/larsks/kwctl/internal/radio"
 )
 
-type (
-	Config struct {
-		bitrate string
-		verbose int
-		vfo     string
-		device  string
-	}
-)
-
 var (
-	config Config
-	logger *slog.Logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.LevelWarn,
-	}))
+	ctx config.Context
 )
 
 func getEnvWithDefault(name, default_value string) string {
@@ -36,90 +26,80 @@ func getEnvWithDefault(name, default_value string) string {
 }
 
 func init() {
-	flag.StringVarP(&config.bitrate, "bitrate", "b", getEnvWithDefault("KWCTL_BPS", "9600"), "bit rate (serial only)")
-	flag.CountVarP(&config.verbose, "verbose", "v", "increase logging verbosity")
-	flag.StringVarP(&config.vfo, "vfo", "", getEnvWithDefault("KWCTL_VFO", "0"), "select vfo on which to operate")
-	flag.StringVarP(&config.device, "device", "d", getEnvWithDefault("KWCTL_DEVICE", "/dev/ttyS0"), "serial device")
+	ctx.Logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelWarn,
+	}))
+	flag.StringVarP(&ctx.Config.Bitrate, "bitrate", "b", getEnvWithDefault("KWCTL_BPS", "9600"), "bit rate (serial only)")
+	flag.CountVarP(&ctx.Config.Verbose, "verbose", "v", "increase logging verbosity")
+	flag.StringVarP(&ctx.Config.Vfo, "vfo", "", getEnvWithDefault("KWCTL_VFO", "0"), "select vfo on which to operate")
+	flag.StringVarP(&ctx.Config.Device, "device", "d", getEnvWithDefault("KWCTL_DEVICE", "/dev/ttyS0"), "serial device")
 }
 
 func main() {
+	flag.SetInterspersed(false)
 	flag.Parse()
 
 	// Initialize logger based on verbose flag
 	logLevel := slog.LevelWarn
-	if config.verbose >= 2 {
+	if ctx.Config.Verbose >= 2 {
 		logLevel = slog.LevelDebug
-	} else if config.verbose >= 1 {
+	} else if ctx.Config.Verbose >= 1 {
 		logLevel = slog.LevelInfo
 	}
-	logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+	ctx.Logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: logLevel,
 	}))
 
-	bitrate, err := strconv.Atoi(config.bitrate)
+	bitrate, err := strconv.Atoi(ctx.Config.Bitrate)
 	if err != nil {
-		logger.Error("invalid bitrate", "bitrate", config.bitrate)
+		ctx.Logger.Error("invalid bitrate", "bitrate", ctx.Config.Bitrate)
 		os.Exit(1)
 	}
-	r := radio.NewRadio(config.device, bitrate).WithLogger(logger)
-
-	if err := r.Open(); err != nil {
-		logger.Error("failed to open radio", "device", config.device, "error", err)
-		os.Exit(1)
-	}
-	defer r.Close()
-
-	if err := r.Check(); err != nil {
-		logger.Error("radio check failed", "device", config.device, "error", err)
-		os.Exit(1)
-	}
-
 	// Parse command
 	args := flag.Args()
 	if len(args) == 0 {
-		logger.Error("no command specified")
+		ctx.Logger.Error("no command specified")
 		os.Exit(1)
 	}
 
 	command := args[0]
 	commandArgs := args[1:]
 
-	// Route to appropriate command handler
-	switch command {
-	case "power":
-		result, err := r.Power(config.vfo, commandArgs...)
-		if err != nil {
-			logger.Error("power command failed", "error", err)
+	if handler := commands.Lookup(command); handler != nil {
+		r := radio.NewRadio(ctx.Config.Device, bitrate).WithLogger(ctx.Logger)
+
+		if err := r.Open(); err != nil {
+			ctx.Logger.Error("failed to open radio", "device", ctx.Config.Device, "error", err)
 			os.Exit(1)
 		}
-		fmt.Println(result)
+		defer r.Close()
 
-	case "channel":
-		result, err := r.Channel(config.vfo, commandArgs...)
-		if err != nil {
-			logger.Error("channel command failed", "error", err)
+		if err := r.Check(); err != nil {
+			ctx.Logger.Error("radio check failed", "device", ctx.Config.Device, "error", err)
 			os.Exit(1)
 		}
-		fmt.Println(result)
 
-	case "id":
-		result, err := r.ID()
+		res, err := handler.Run(r, ctx, commandArgs)
 		if err != nil {
-			logger.Error("id command failed", "error", err)
+			ctx.Logger.Error("command failed", "command", command, "error", err)
 			os.Exit(1)
 		}
-		fmt.Println(result)
 
-	case "vfo":
-		result, err := r.VFO(commandArgs...)
-		if err != nil {
-			logger.Error("id command failed", "error", err)
-			os.Exit(1)
+		if res != "" {
+			fmt.Printf("%s\n", res)
 		}
-		fmt.Println(result)
-
-	default:
-		logger.Error("unknown command", "command", command)
+	} else if command == "help" {
+		showHelp(os.Stdout)
+	} else {
+		ctx.Logger.Error("no such command", "command", command)
+		showHelp(os.Stderr)
 		os.Exit(1)
+	}
+}
+
+func showHelp(out *os.File) {
+	fmt.Fprintf(out, "Available commands:\n\n")
+	for _, command := range commands.List() {
+		fmt.Fprintf(out, "  %s\n", command)
 	}
 }
