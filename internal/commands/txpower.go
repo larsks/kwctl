@@ -2,11 +2,13 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
+	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
 )
 
@@ -19,15 +21,10 @@ type (
 var txpowerNames map[string]string = map[string]string{
 	"high":   "0",
 	"medium": "1",
-	"med":    "1",
 	"low":    "2",
 }
 
-var txpowerNumbers map[string]string = map[string]string{
-	"0": "high",
-	"1": "medium",
-	"2": "low",
-}
+var txpowerNumbers map[string]string = helpers.ReverseMap(txpowerNames)
 
 func init() {
 	Register("txpower", &TxPowerCommand{})
@@ -35,6 +32,17 @@ func init() {
 
 func (c *TxPowerCommand) Init() error {
 	c.flags = flag.NewFlagSet("txpower", flag.ContinueOnError)
+	c.flags.SetOutput(os.Stdout)
+	c.flags.Usage = func() {
+		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+			Usage: kwctl txpower [high|medium|low]
+
+			Set the transmit power for the selected VFO.
+
+			Options:
+		`))
+		c.flags.PrintDefaults()
+	}
 	return nil
 }
 

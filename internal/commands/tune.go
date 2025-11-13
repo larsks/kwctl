@@ -2,11 +2,13 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
+	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
 	"github.com/larsks/kwctl/internal/types"
 )
@@ -22,9 +24,21 @@ func init() {
 	Register("tune", &TuneCommand{})
 }
 
+//nolint:errcheck
 func (c *TuneCommand) Init() error {
 	c.flags = flag.NewFlagSet("id", flag.ContinueOnError)
 	c.flags.BoolVarP(&c.forceVfoMode, "force", "f", false, "change to vfo mode before tuning")
+	c.flags.SetOutput(os.Stdout)
+	c.flags.Usage = func() {
+		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+			Usage: kwctl tune [options]
+
+			Tune the selected VFO.
+
+			Options:
+		`))
+		c.flags.PrintDefaults()
+	}
 	return nil
 }
 

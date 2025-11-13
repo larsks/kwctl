@@ -2,10 +2,12 @@ package commands
 
 import (
 	"fmt"
+	"os"
 
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
+	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
 )
 
@@ -19,8 +21,20 @@ func init() {
 	Register("id", &IDCommand{})
 }
 
+//nolint:errcheck
 func (c *IDCommand) Init() error {
 	c.flags = flag.NewFlagSet("id", flag.ContinueOnError)
+	c.flags.SetOutput(os.Stdout)
+	c.flags.Usage = func() {
+		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+			Usage: kwctl id
+
+			Display the radio ID response.
+
+			Options:
+		`))
+		c.flags.PrintDefaults()
+	}
 	return nil
 }
 

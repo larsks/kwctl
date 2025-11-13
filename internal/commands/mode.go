@@ -2,11 +2,13 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
+	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
 )
 
@@ -23,20 +25,25 @@ func init() {
 var modeNames map[string]string = map[string]string{
 	"vfo":    "0",
 	"memory": "1",
-	"mem":    "1",
 	"call":   "2",
 	"wx":     "3",
 }
 
-var modeNumbers map[string]string = map[string]string{
-	"0": "vfo",
-	"1": "memory",
-	"2": "call",
-	"3": "wx",
-}
+var modeNumbers map[string]string = helpers.ReverseMap(modeNames)
 
 func (c *ModeCommand) Init() error {
 	c.flags = flag.NewFlagSet("mode", flag.ContinueOnError)
+	c.flags.SetOutput(os.Stdout)
+	c.flags.Usage = func() {
+		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+			Usage: kwctl mode [vfo|memory|call|wx]
+
+			Set the operating mode for the target VFO.
+
+			Options:
+		`))
+		c.flags.PrintDefaults()
+	}
 	return nil
 }
 
