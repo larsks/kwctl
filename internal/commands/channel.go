@@ -9,6 +9,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
+	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
 	"github.com/larsks/kwctl/internal/types"
 )
@@ -26,41 +27,54 @@ func init() {
 }
 
 func (c ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
-	for channel := range 999 {
-		var parsedChannel types.Channel
-		var channelName string
+	flags := flag.NewFlagSet("channel", flag.ContinueOnError)
+	if err := flags.Parse(args); err != nil {
+		return "", fmt.Errorf("command failed: %w", err)
+	}
 
-		channelNum := fmt.Sprintf("%03d", channel)
-		res, err := r.SendCommand("ME", channelNum)
-		if err != nil {
-			if errors.Is(err, radio.ErrUnavailableCommand) {
-				parsedChannel = types.Channel{}
-			} else {
-				return "", fmt.Errorf("failed to list channels: %w", err)
-			}
-		} else {
-			parsedChannel, err = types.ParseChannel(res)
+	for _, arg := range flags.Args() {
+		for channel, err := range helpers.RangeIterator(arg) {
 			if err != nil {
-				return "", fmt.Errorf("invalid channel data: %w", err)
+				return "", fmt.Errorf("invalid range: %w", err)
 			}
+			if channel < 0 || channel > 999 {
+				return "", fmt.Errorf("invalid range (channels must be between 0 and 999)")
+			}
+			var parsedChannel types.Channel
+			var channelName string
 
-			res, err := r.SendCommand("MN", channelNum)
+			channelNum := fmt.Sprintf("%03d", channel)
+			res, err := r.SendCommand("ME", channelNum)
 			if err != nil {
-				if !errors.Is(err, radio.ErrUnavailableCommand) {
-					return "", fmt.Errorf("failed to get channel name: %w", err)
+				if errors.Is(err, radio.ErrUnavailableCommand) {
+					parsedChannel = types.Channel{}
+				} else {
+					return "", fmt.Errorf("failed to list channels: %w", err)
 				}
 			} else {
-				parts := strings.SplitN(res, ",", 2)
-				if len(parts) == 2 {
-					channelName = parts[1]
+				parsedChannel, err = types.ParseChannel(res)
+				if err != nil {
+					return "", fmt.Errorf("invalid channel data: %w", err)
+				}
+
+				res, err := r.SendCommand("MN", channelNum)
+				if err != nil {
+					if !errors.Is(err, radio.ErrUnavailableCommand) {
+						return "", fmt.Errorf("failed to get channel name: %w", err)
+					}
+				} else {
+					parts := strings.SplitN(res, ",", 2)
+					if len(parts) == 2 {
+						channelName = parts[1]
+					}
 				}
 			}
-		}
 
-		if parsedChannel.RxFreq == 0 {
-			fmt.Printf("[%-6s] %03d\n", channelName, channel)
-		} else {
-			fmt.Printf("[%-6s] %s\n", channelName, parsedChannel)
+			if parsedChannel.RxFreq == 0 {
+				fmt.Printf("[%-6s] %03d\n", channelName, channel)
+			} else {
+				fmt.Printf("[%-6s] %s\n", channelName, parsedChannel)
+			}
 		}
 	}
 	return "", nil
