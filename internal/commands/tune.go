@@ -31,10 +31,15 @@ func (c TuneCommand) Run(r *radio.Radio, ctx config.Context, args []string) (str
 	}
 
 	flags := flag.NewFlagSet("id", flag.ContinueOnError)
-	flags.IntVarP(&vfo.RxFreq, "rxfreq", "r", vfo.RxFreq, "frequency")
+	flags.VarP(types.NewFrequencyMHz(&vfo.RxFreq), "rxfreq", "r", "frequency in MHz (e.g., 144.39)")
 	if err := flags.Parse(args); err != nil {
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
-	return r.SendCommand("FO", strings.Split(vfo.String(), ",")...)
+	res, err = r.SendCommand("FO", strings.Split(vfo.Serialize(), ",")...)
+	if err != nil {
+		return "", fmt.Errorf("failed to tune vfo")
+	}
+
+	return fmt.Sprintf("%s\n", vfo), nil
 }

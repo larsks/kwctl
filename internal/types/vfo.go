@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -72,7 +73,7 @@ func ParseVFO(s string) (VFO, error) {
 }
 
 // FO 1,0145090000,0,0,0,0,0,0,08,08,000,00000000,0
-func (v VFO) String() string {
+func (v VFO) Serialize() string {
 	return fmt.Sprintf("%d,%010d,%d,%d,%d,%d,%d,%d,%02d,%02d,%03d,%08d,%d",
 		v.VFO,
 		v.RxFreq,
@@ -88,4 +89,10 @@ func (v VFO) String() string {
 		v.Offset,
 		v.Mode,
 	)
+}
+
+// FO 1,0145090000,0,0,0,0,0,0,08,08,000,00000000,0
+func (v VFO) String() string {
+	s, _ := json.MarshalIndent(v, "", "  ")
+	return string(s)
 }
