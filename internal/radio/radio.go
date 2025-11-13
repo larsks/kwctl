@@ -83,9 +83,6 @@ func (r *Radio) SendCommand(cmd string, args ...string) (string, error) {
 		if err != nil || n == 0 {
 			break // Timeout or error - buffer was already empty
 		}
-		if flushBuf[0] == '\r' {
-			break // Got end of flush response
-		}
 		// Continue reading and discarding until we get CR or timeout
 	}
 
