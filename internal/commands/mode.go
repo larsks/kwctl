@@ -21,6 +21,7 @@ func init() {
 var modeNames map[string]string = map[string]string{
 	"vfo":    "0",
 	"memory": "1",
+	"mem":    "1",
 	"call":   "2",
 	"wx":     "3",
 }
