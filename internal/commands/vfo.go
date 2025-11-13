@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 
 	flag "github.com/spf13/pflag"
 
@@ -23,18 +24,19 @@ func (c VFOCommand) Run(r *radio.Radio, ctx config.Context, args []string) (stri
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
-	var response string
+	var res string
 	var err error
 
 	if flags.NArg() == 0 {
-		response, err = r.SendCommand("BC")
+		res, err = r.SendCommand("BC")
 	} else {
-		response, err = r.SendCommand("BC", flags.Arg(0), flags.Arg(0))
+		res, err = r.SendCommand("BC", flags.Arg(0), flags.Arg(0))
 	}
 
 	if err != nil {
 		return "", fmt.Errorf("failed to select vfo: %w", err)
 	}
 
-	return response, nil
+	parts := strings.Split(res, ",")
+	return fmt.Sprintf("CONTROL: %s, PTT: %s", parts[0], parts[1]), nil
 }
