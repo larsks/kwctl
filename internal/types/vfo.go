@@ -98,28 +98,28 @@ func (v VFO) MarshalJSON() ([]byte, error) {
 		VFO       int    `json:"VFO"`
 		RxFreq    string `json:"RxFreq"`
 		RxStep    string `json:"RxStep"`
-		Shift     int    `json:"Shift"`
-		Reverse   int    `json:"Reverse"`
-		Tone      int    `json:"Tone"`
-		CTCSS     int    `json:"CTCSS"`
-		DCS       int    `json:"DCS"`
-		ToneFreq  int    `json:"ToneFreq"`
-		CTCSSFreq int    `json:"CTCSSFreq"`
-		DCSFreq   int    `json:"DCSFreq"`
+		Shift     string `json:"Shift"`
+		Reverse   string `json:"Reverse"`
+		Tone      string `json:"Tone"`
+		CTCSS     string `json:"CTCSS"`
+		DCS       string `json:"DCS"`
+		ToneFreq  string `json:"ToneFreq"`
+		CTCSSFreq string `json:"CTCSSFreq"`
+		DCSFreq   string `json:"DCSFreq"`
 		Offset    string `json:"Offset"`
 		Mode      string `json:"Mode"`
 	}{
 		VFO:       v.VFO,
 		RxFreq:    NewFrequencyMHz(&v.RxFreq).String(),
 		RxStep:    NewStepSize(&v.RxStep).String(),
-		Shift:     v.Shift,
-		Reverse:   v.Reverse,
-		Tone:      v.Tone,
-		CTCSS:     v.CTCSS,
-		DCS:       v.DCS,
-		ToneFreq:  v.ToneFreq,
-		CTCSSFreq: v.CTCSSFreq,
-		DCSFreq:   v.DCSFreq,
+		Shift:     NewShift(&v.Shift).String(),
+		Reverse:   NewBool(&v.Reverse).String(),
+		Tone:      NewBool(&v.Tone).String(),
+		CTCSS:     NewBool(&v.CTCSS).String(),
+		DCS:       NewBool(&v.DCS).String(),
+		ToneFreq:  NewTone(&v.ToneFreq).String(),
+		CTCSSFreq: NewTone(&v.CTCSSFreq).String(),
+		DCSFreq:   NewDCS(&v.DCSFreq).String(),
 		Offset:    NewFrequencyMHz(&v.Offset).String(),
 		Mode:      NewMode(&v.Mode).String(),
 	}
