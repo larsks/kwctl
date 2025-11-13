@@ -125,6 +125,13 @@ func (r *Radio) SendCommand(cmd string, args ...string) (string, error) {
 
 	// Step 4: Parse response (format: "CMD ARG1,ARG2,...")
 	responseStr := string(response)
+
+	if responseStr == "?" {
+		return "", fmt.Errorf("command failed")
+	}
+	if responseStr == "N" {
+		return "", fmt.Errorf("command cannot run at this time")
+	}
 	parts := strings.SplitN(responseStr, " ", 2)
 	if len(parts) < 2 {
 		return "", nil
