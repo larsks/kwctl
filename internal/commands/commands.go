@@ -15,12 +15,21 @@ type (
 
 var commands map[string]Command = make(map[string]Command)
 
-func Register(name string, command Command) {
+func Register(name string, command Command, aliases ...string) {
 	if _, exists := commands[name]; exists {
 		slog.Error("ignoring duplicate registration", "command", name)
+		return
 	}
 
 	commands[name] = command
+
+	for _, alias := range aliases {
+		if _, exists := commands[alias]; exists {
+			slog.Error("ignoring duplicate registration", "alias", alias)
+			continue
+		}
+		commands[alias] = command
+	}
 }
 
 func Lookup(name string) Command {
