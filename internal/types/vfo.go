@@ -35,11 +35,13 @@ type (
 		DCS       int
 		ToneFreq  int
 		CTCSSFreq int
-		DCSFreq   int
+		DCSCode   int
 		Offset    int
 		Mode      int
 	}
 )
+
+var EmptyVFO = VFO{}
 
 // FO 1,0145090000,0,0,0,0,0,0,08,08,000,00000000,0
 func ParseVFO(s string) (VFO, error) {
@@ -66,7 +68,7 @@ func ParseVFO(s string) (VFO, error) {
 		DCS:       parts[7],
 		ToneFreq:  parts[8],
 		CTCSSFreq: parts[9],
-		DCSFreq:   parts[10],
+		DCSCode:   parts[10],
 		Offset:    parts[11],
 		Mode:      parts[12],
 	}, nil
@@ -85,7 +87,7 @@ func (v VFO) Serialize() string {
 		v.DCS,
 		v.ToneFreq,
 		v.CTCSSFreq,
-		v.DCSFreq,
+		v.DCSCode,
 		v.Offset,
 		v.Mode,
 	)
@@ -105,7 +107,7 @@ func (v VFO) MarshalJSON() ([]byte, error) {
 		DCS       string `json:"DCS"`
 		ToneFreq  string `json:"ToneFreq"`
 		CTCSSFreq string `json:"CTCSSFreq"`
-		DCSFreq   string `json:"DCSFreq"`
+		DCSCode   string `json:"DCSFreq"`
 		Offset    string `json:"Offset"`
 		Mode      string `json:"Mode"`
 	}{
@@ -119,7 +121,7 @@ func (v VFO) MarshalJSON() ([]byte, error) {
 		DCS:       NewBool(&v.DCS).String(),
 		ToneFreq:  NewTone(&v.ToneFreq).String(),
 		CTCSSFreq: NewTone(&v.CTCSSFreq).String(),
-		DCSFreq:   NewDCS(&v.DCSFreq).String(),
+		DCSCode:   NewDCS(&v.DCSCode).String(),
 		Offset:    NewFrequencyMHz(&v.Offset).String(),
 		Mode:      NewMode(&v.Mode).String(),
 	}
@@ -140,7 +142,7 @@ func (v VFO) String() string {
 		NewBool(&v.DCS).String(),
 		NewTone(&v.ToneFreq).String(),
 		NewTone(&v.CTCSSFreq).String(),
-		NewDCS(&v.DCSFreq).String(),
+		NewDCS(&v.DCSCode).String(),
 		NewFrequencyMHz(&v.Offset).String(),
 		NewMode(&v.Mode).String(),
 	}, ",")
