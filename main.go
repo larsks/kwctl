@@ -51,21 +51,25 @@ func main() {
 		os.Exit(1)
 	}
 
-	command := args[0]
+	commandName := args[0]
 	commandArgs := args[1:]
 
-	if handler := commands.Lookup(command); handler != nil {
-		r := radio.NewRadio(ctx.Config.Device, ctx.Config.Bitrate).WithLogger(ctx.Logger)
+	if handler := commands.Lookup(commandName); handler != nil {
+		var r *radio.Radio
 
-		if err := r.Open(); err != nil {
-			ctx.Logger.Error("failed to open radio", "device", ctx.Config.Device, "error", err)
-			os.Exit(1)
-		}
-		defer r.Close()
+		if handler.NeedsRadio() {
+			r = radio.NewRadio(ctx.Config.Device, ctx.Config.Bitrate).WithLogger(ctx.Logger)
 
-		if err := r.Check(); err != nil {
-			ctx.Logger.Error("radio check failed", "device", ctx.Config.Device, "error", err)
-			os.Exit(1)
+			if err := r.Open(); err != nil {
+				ctx.Logger.Error("failed to open radio", "device", ctx.Config.Device, "error", err)
+				os.Exit(1)
+			}
+			defer r.Close()
+
+			if err := r.Check(); err != nil {
+				ctx.Logger.Error("radio check failed", "device", ctx.Config.Device, "error", err)
+				os.Exit(1)
+			}
 		}
 
 		res, err := handler.Run(r, ctx, commandArgs)
@@ -73,17 +77,17 @@ func main() {
 			if errors.Is(err, flag.ErrHelp) {
 				return
 			}
-			ctx.Logger.Error("command failed", "command", command, "error", err)
+			ctx.Logger.Error("command failed", "command", commandName, "error", err)
 			os.Exit(1)
 		}
 
 		if res != "" {
 			fmt.Printf("%s\n", res)
 		}
-	} else if command == "help" {
+	} else if commandName == "help" {
 		showHelp(os.Stdout)
 	} else {
-		ctx.Logger.Error("no such command", "command", command)
+		ctx.Logger.Error("no such command", "command", commandName)
 		showHelp(os.Stderr)
 		os.Exit(1)
 	}

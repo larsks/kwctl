@@ -21,6 +21,10 @@ func init() {
 	Register("id", &IDCommand{})
 }
 
+func (c *IDCommand) NeedsRadio() bool {
+	return true
+}
+
 //nolint:errcheck
 func (c *IDCommand) Init() error {
 	c.flags = flag.NewFlagSet("id", flag.ContinueOnError)

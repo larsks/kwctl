@@ -32,6 +32,10 @@ func init() {
 	Register("bands", &BandsCommand{})
 }
 
+func (c *BandsCommand) NeedsRadio() bool {
+	return true
+}
+
 //nolint:errcheck
 func (c *BandsCommand) Init() error {
 	c.flags = flag.NewFlagSet("bands", flag.ContinueOnError)

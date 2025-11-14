@@ -30,6 +30,10 @@ func init() {
 	Register("txpower", &TxPowerCommand{})
 }
 
+func (c *TxPowerCommand) NeedsRadio() bool {
+	return true
+}
+
 func (c *TxPowerCommand) Init() error {
 	c.flags = flag.NewFlagSet("txpower", flag.ContinueOnError)
 	c.flags.SetOutput(os.Stdout)
