@@ -27,7 +27,8 @@ import (
 
 type (
 	Channel struct {
-		Channel   int
+		Name      string
+		Number    int
 		RxFreq    int
 		RxStep    int
 		Shift     int
@@ -37,7 +38,7 @@ type (
 		DCS       int
 		ToneFreq  int
 		CTCSSFreq int
-		DCSFreq   int
+		DCSCode   int
 		Offset    int
 		Mode      int
 		TxFreq    int
@@ -46,22 +47,24 @@ type (
 	}
 )
 
+var EmptyChannel = Channel{}
+
 // ME 101,0145090000,0,0,0,0,0,0,08,08,000,00000000,0,0000000000,0,1
 func ParseChannel(s string) (Channel, error) {
 	parts := []int{}
 	for sval := range strings.SplitSeq(s, ",") {
 		ival, err := strconv.Atoi(sval)
 		if err != nil {
-			return Channel{}, err
+			return EmptyChannel, err
 		}
 		parts = append(parts, ival)
 	}
 
 	if len(parts) != 16 {
-		return Channel{}, fmt.Errorf("invalid channel specification")
+		return EmptyChannel, fmt.Errorf("invalid channel specification")
 	}
 	return Channel{
-		Channel:   parts[0],
+		Number:    parts[0],
 		RxFreq:    parts[1],
 		RxStep:    parts[2],
 		Shift:     parts[3],
@@ -71,7 +74,7 @@ func ParseChannel(s string) (Channel, error) {
 		DCS:       parts[7],
 		ToneFreq:  parts[8],
 		CTCSSFreq: parts[9],
-		DCSFreq:   parts[10],
+		DCSCode:   parts[10],
 		Offset:    parts[11],
 		Mode:      parts[12],
 		TxFreq:    parts[13],
@@ -82,8 +85,29 @@ func ParseChannel(s string) (Channel, error) {
 
 // ME 101,0145090000,0,0,0,0,0,0,08,08,000,00000000,0,0000000000,0,1
 func (c Channel) String() string {
+	return strings.Join([]string{
+		fmt.Sprintf("%03d", c.Number),
+		NewFrequencyMHz(&c.RxFreq).String(),
+		NewStepSize(&c.RxStep).String(),
+		NewShift(&c.Shift).String(),
+		NewBool(&c.Reverse).String(),
+		NewBool(&c.Tone).String(),
+		NewBool(&c.CTCSS).String(),
+		NewBool(&c.DCS).String(),
+		NewTone(&c.ToneFreq).String(),
+		NewTone(&c.CTCSSFreq).String(),
+		NewDCS(&c.DCSCode).String(),
+		NewFrequencyMHz(&c.Offset).String(),
+		NewMode(&c.Mode).String(),
+		NewFrequencyMHz(&c.TxFreq).String(),
+		NewStepSize(&c.TxStep).String(),
+		NewBool(&c.Lock).String(),
+	}, ",")
+}
+
+func (c Channel) Serialize() string {
 	return fmt.Sprintf("%03d,%010d,%d,%d,%d,%d,%d,%d,%02d,%02d,%03d,%08d,%d,%010d,%d,%d",
-		c.Channel,
+		c.Number,
 		c.RxFreq,
 		c.RxStep,
 		c.Shift,
@@ -93,7 +117,7 @@ func (c Channel) String() string {
 		c.DCS,
 		c.ToneFreq,
 		c.CTCSSFreq,
-		c.DCSFreq,
+		c.DCSCode,
 		c.Offset,
 		c.Mode,
 		c.TxFreq,
