@@ -129,6 +129,19 @@ func (v VFO) MarshalJSON() ([]byte, error) {
 
 // FO 1,0145090000,0,0,0,0,0,0,08,08,000,00000000,0
 func (v VFO) String() string {
-	s, _ := json.MarshalIndent(v, "", "  ")
-	return string(s)
+	return strings.Join([]string{
+		fmt.Sprintf("%d", v.VFO),
+		NewFrequencyMHz(&v.RxFreq).String(),
+		NewStepSize(&v.RxStep).String(),
+		NewShift(&v.Shift).String(),
+		NewBool(&v.Reverse).String(),
+		NewBool(&v.Tone).String(),
+		NewBool(&v.CTCSS).String(),
+		NewBool(&v.DCS).String(),
+		NewTone(&v.ToneFreq).String(),
+		NewTone(&v.CTCSSFreq).String(),
+		NewDCS(&v.DCSFreq).String(),
+		NewFrequencyMHz(&v.Offset).String(),
+		NewMode(&v.Mode).String(),
+	}, ",")
 }
