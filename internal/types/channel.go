@@ -125,3 +125,32 @@ func (c Channel) Serialize() string {
 		c.Lockout,
 	)
 }
+
+// RadioSettable interface implementation
+
+func (c *Channel) GetRxFreq() int    { return c.RxFreq }
+func (c *Channel) SetRxFreq(v int)   { c.RxFreq = v }
+func (c *Channel) GetRxStep() int    { return c.RxStep }
+func (c *Channel) SetRxStep(v int)   { c.RxStep = v }
+func (c *Channel) GetMode() int      { return c.Mode }
+func (c *Channel) SetMode(v int)     { c.Mode = v }
+func (c *Channel) GetShift() int     { return c.Shift }
+func (c *Channel) SetShift(v int)    { c.Shift = v }
+func (c *Channel) GetReverse() int   { return c.Reverse }
+func (c *Channel) SetReverse(v int)  { c.Reverse = v }
+func (c *Channel) GetOffset() int    { return c.Offset }
+func (c *Channel) SetOffset(v int)   { c.Offset = v }
+func (c *Channel) GetTone() int      { return c.Tone }
+func (c *Channel) SetTone(v int)     { c.Tone = v }
+func (c *Channel) GetCTCSS() int     { return c.CTCSS }
+func (c *Channel) SetCTCSS(v int)    { c.CTCSS = v }
+func (c *Channel) GetDCS() int       { return c.DCS }
+func (c *Channel) SetDCS(v int)      { c.DCS = v }
+func (c *Channel) GetToneFreq() int  { return c.ToneFreq }
+func (c *Channel) SetToneFreq(v int) { c.ToneFreq = v }
+func (c *Channel) GetCTCSSFreq() int { return c.CTCSSFreq }
+func (c *Channel) SetCTCSSFreq(v int) {
+	c.CTCSSFreq = v
+}
+func (c *Channel) GetDCSCode() int  { return c.DCSCode }
+func (c *Channel) SetDCSCode(v int) { c.DCSCode = v }

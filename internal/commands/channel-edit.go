@@ -16,10 +16,13 @@ import (
 
 type (
 	ChannelEditCommand struct {
-		flags      *flag.FlagSet
-		channel    types.Channel
-		clear      bool
-		srcChannel int
+		flags       *flag.FlagSet
+		radioFlags  types.RadioFlagValues
+		channelName string
+		txFreq      int
+		txStep      int
+		clear       bool
+		srcChannel  int
 	}
 )
 
@@ -31,18 +34,13 @@ func init() {
 func (c *ChannelEditCommand) Init() error {
 	c.flags = flag.NewFlagSet("channel-edit", flag.ContinueOnError)
 
-	c.flags.StringVarP(&c.channel.Name, "name", "n", "", "set channel name")
-	c.flags.VarP(types.NewFrequencyMHz(&c.channel.RxFreq), "rxfreq", "r", "frequency in MHz (e.g., 144.39)")
-	c.flags.VarP(types.NewStepSize(&c.channel.RxStep), "rxstep", "s", "step size in hz (e.g., 5)")
-	c.flags.VarP(types.NewMode(&c.channel.Mode), "mode", "m", "Mode (FM, NFM, AM)")
-	c.flags.VarP(types.NewShift(&c.channel.Shift), "shift", "t", "Shift (simplex, up, down)")
-	c.flags.VarP(types.NewFrequencyMHz(&c.channel.Offset), "offset", "", "offset in MHz (e.g., 0.6)")
-	c.flags.StringP("tone-mode", "", "none", "select tone mode (none, tone, tsql, dcs)")
-	c.flags.VarP(types.NewTone(&c.channel.ToneFreq), "txtone", "", "CTCSS tone when sending")
-	c.flags.VarP(types.NewTone(&c.channel.CTCSSFreq), "rxtone", "", "CTCSS tone when receiving")
-	c.flags.VarP(types.NewDCS(&c.channel.DCSCode), "dcs", "", "DCS code")
-	c.flags.VarP(types.NewFrequencyMHz(&c.channel.TxFreq), "txfreq", "", "frequency in MHz (e.g., 144.39)")
-	c.flags.VarP(types.NewStepSize(&c.channel.TxStep), "txstep", "", "step size in hz (e.g., 5)")
+	// Add common radio setting flags
+	types.AddRadioSettingFlags(c.flags, &c.radioFlags)
+
+	// Add channel-specific flags
+	c.flags.StringVarP(&c.channelName, "name", "n", "", "set channel name")
+	c.flags.VarP(types.NewFrequencyMHz(&c.txFreq), "txfreq", "", "frequency in MHz (e.g., 144.39)")
+	c.flags.VarP(types.NewStepSize(&c.txStep), "txstep", "", "step size in hz (e.g., 5)")
 	c.flags.Bool("lockout", false, "skip channel during scan")
 	c.flags.BoolVarP(&c.clear, "clear", "", false, "clear channel")
 	c.flags.IntVarP(&c.srcChannel, "copy", "", -1, "copy data from another channel")
@@ -107,22 +105,16 @@ func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 		oldChannel = channel
 	}
 
+	// Apply common radio settings
+	types.ApplyRadioSettingFlags(c.flags, &c.radioFlags, &channel)
+
+	// Apply channel-specific flags
 	c.flags.Visit(func(f *flag.Flag) {
 		switch f.Name {
-		case "rxfreq":
-			channel.RxFreq = c.channel.RxFreq
-		case "rxstep":
-			channel.RxStep = c.channel.RxStep
 		case "txfreq":
-			channel.TxFreq = c.channel.TxFreq
+			channel.TxFreq = c.txFreq
 		case "txstep":
-			channel.TxStep = c.channel.TxStep
-		case "mode":
-			channel.Mode = c.channel.Mode
-		case "shift":
-			channel.Shift = c.channel.Shift
-		case "offset":
-			channel.Offset = c.channel.Offset
+			channel.TxStep = c.txStep
 		case "lockout":
 			val, _ := c.flags.GetBool("lockout")
 			if val {
@@ -130,33 +122,8 @@ func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 			} else {
 				channel.Lockout = 0
 			}
-		case "tone-mode":
-			switch f.Value.String() {
-			case "none":
-				channel.Tone = 0
-				channel.CTCSS = 0
-				channel.DCS = 0
-			case "tone":
-				channel.Tone = 1
-				channel.CTCSS = 0
-				channel.DCS = 0
-			case "tsql":
-				channel.Tone = 1
-				channel.CTCSS = 1
-				channel.DCS = 0
-			case "dcs":
-				channel.Tone = 0
-				channel.CTCSS = 0
-				channel.DCS = 1
-			}
-		case "txtone":
-			channel.ToneFreq = c.channel.ToneFreq
-		case "rxtone":
-			channel.CTCSSFreq = c.channel.CTCSSFreq
-		case "dcs":
-			channel.DCSCode = c.channel.DCSCode
 		case "name":
-			channel.Name = c.channel.Name
+			channel.Name = c.channelName
 		}
 	})
 
