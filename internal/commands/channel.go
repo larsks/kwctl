@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
 	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
+	"github.com/larsks/kwctl/internal/types"
 )
 
 type (
@@ -48,58 +48,41 @@ func (c ChannelCommand) Run(r *radio.Radio, ctx config.Context, args []string) (
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
-	var res string
 	var err error
 	var channelNum int
+	var channel types.Channel
 
-	if c.flags.NArg() == 0 {
-		// Get current channel
-		res, err = r.SendCommand("MR", ctx.Config.Vfo)
-	} else {
-		channel := c.flags.Arg(0)
+	if c.flags.NArg() == 1 {
+		selected := c.flags.Arg(0)
 
-		if channel == "up" || channel == "down" {
-			res, err := r.SendCommand("MR", ctx.Config.Vfo)
+		if selected == "up" || selected == "down" {
+			channelNum, err = r.GetCurrentChannelNumber(ctx.Config.Vfo)
 			if err != nil {
-				return "", fmt.Errorf("failed to get current channel: %w", err)
+				return "", fmt.Errorf("failed to get channel: %w", err)
 			}
 
-			parts := strings.Split(res, ",")
-			if len(parts) != 2 {
-				return "", fmt.Errorf("unable to determine current channel: %w", err)
-			}
-
-			channelNum, err = strconv.Atoi(parts[1])
-			if err != nil {
-				return "", fmt.Errorf("invalid response from radio: %w", err)
-			}
-
-			if channel == "up" {
+			if selected == "up" {
 				channelNum = min(channelNum+1, 999)
 			} else {
 				channelNum = max(channelNum-1, 0)
 			}
 		} else {
-			channelNum, err = strconv.Atoi(channel)
+			channelNum, err = strconv.Atoi(selected)
 			if err != nil {
-				return "", fmt.Errorf("invalid channel number: %s", channel)
+				return "", fmt.Errorf("invalid channel number: %s", selected)
 			}
 		}
 
 		// Set channel - zero-pad to 3 digits
-		paddedChannel := fmt.Sprintf("%03d", channelNum)
-		res, err = r.SendCommand("MR", ctx.Config.Vfo, paddedChannel)
+		if err = r.SetCurrentChannel(ctx.Config.Vfo, channelNum); err != nil {
+			return "", fmt.Errorf("failed to set channel: %w", err)
+		}
 	}
 
+	channel, err = r.GetCurrentChannel(ctx.Config.Vfo)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get current channel: %w", err)
 	}
 
-	// Parse response: "vfo,channel"
-	parts := strings.Split(res, ",")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("unexpected response format: %s", res)
-	}
-
-	return parts[1], nil
+	return channel.String(), nil
 }

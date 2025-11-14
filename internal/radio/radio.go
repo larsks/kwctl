@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -229,6 +230,47 @@ func (r *Radio) SetMemoryChannel(channel types.Channel) error {
 		if err != nil {
 			return fmt.Errorf("failed to set name for channel %d: %w", channel.Number, err)
 		}
+	}
+
+	return nil
+}
+
+func (r *Radio) GetCurrentChannelNumber(vfo string) (int, error) {
+	res, err := r.SendCommand("MR", vfo)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get current channel: %w", err)
+	}
+
+	parts := strings.Split(res, ",")
+	if len(parts) != 2 {
+		return 0, fmt.Errorf("unable to determine current channel")
+	}
+
+	channelNum, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return 0, fmt.Errorf("unable to determine current channel: %w", err)
+	}
+
+	return channelNum, nil
+}
+
+func (r *Radio) GetCurrentChannel(vfo string) (types.Channel, error) {
+	channelNum, err := r.GetCurrentChannelNumber(vfo)
+	if err != nil {
+		return types.EmptyChannel, fmt.Errorf("unable to determine current channel: %w", err)
+	}
+
+	channel, err := r.GetMemoryChannel(channelNum)
+	if err != nil {
+		return types.EmptyChannel, fmt.Errorf("unable to get data for channel %d: %w", channelNum, err)
+	}
+	return channel, nil
+}
+
+func (r *Radio) SetCurrentChannel(vfo string, channelNumber int) error {
+	_, err := r.SendCommand("MR", vfo, fmt.Sprintf("%03d", channelNumber))
+	if err != nil {
+		return fmt.Errorf("failed to set channel: %w", err)
 	}
 
 	return nil

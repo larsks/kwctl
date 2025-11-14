@@ -6,7 +6,7 @@ import (
 
 type (
 	Config struct {
-		Bitrate string
+		Bitrate int
 		Verbose int
 		Vfo     string
 		Device  string
