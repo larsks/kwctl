@@ -64,7 +64,7 @@ func main() {
 				ctx.Logger.Error("failed to open radio", "device", ctx.Config.Device, "error", err)
 				os.Exit(1)
 			}
-			defer r.Close()
+			defer r.Close() //nolint:errcheck
 
 			if err := r.Check(); err != nil {
 				ctx.Logger.Error("radio check failed", "device", ctx.Config.Device, "error", err)
@@ -93,6 +93,7 @@ func main() {
 	}
 }
 
+//nolint:errcheck
 func showHelp(out *os.File) {
 	fmt.Fprintf(out, "Available commands:\n\n")
 	for _, command := range commands.List() {

@@ -62,7 +62,7 @@ func (r *Radio) Open() error {
 
 	// Set read timeout to prevent blocking indefinitely
 	if err := port.SetReadTimeout(100 * time.Millisecond); err != nil {
-		port.Close()
+		port.Close() //nolint:errcheck
 		return fmt.Errorf("failed to set read timeout: %w", err)
 	}
 
