@@ -22,6 +22,15 @@ type (
 		port   serial.Port
 		logger *slog.Logger
 	}
+
+	VfoMode int
+)
+
+const (
+	VFO_MODE_VFO VfoMode = iota
+	VFO_MODE_MEMORY
+	VFO_MODE_CALL
+	VFO_MODE_WX
 )
 
 var ErrInvalidCommand = errors.New("invalid command")
@@ -271,6 +280,56 @@ func (r *Radio) SetCurrentChannel(vfo string, channelNumber int) error {
 	_, err := r.SendCommand("MR", vfo, fmt.Sprintf("%03d", channelNumber))
 	if err != nil {
 		return fmt.Errorf("failed to set channel: %w", err)
+	}
+
+	return nil
+}
+
+func (r *Radio) GetVFO(vfo string) (types.VFO, error) {
+	res, err := r.SendCommand("FO", vfo)
+	if err != nil {
+		return types.EmptyVFO, fmt.Errorf("unable to read vfo %s: %w", vfo, err)
+	}
+
+	v, err := types.ParseVFO(res)
+	if err != nil {
+		return types.EmptyVFO, fmt.Errorf("failed to parse vfo configuration: %w", err)
+	}
+	return v, nil
+}
+
+func (r *Radio) SetVFO(vfo string, config types.VFO) error {
+	_, err := r.SendCommand("FO", config.Serialize())
+	if err != nil {
+		return fmt.Errorf("failed to tune vfo %s: %w", vfo, err)
+	}
+
+	return nil
+}
+
+func (r *Radio) GetVFOMode(vfo string) (VfoMode, error) {
+	res, err := r.SendCommand("VM", vfo)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read mode for vfo %s: %w", vfo, err)
+	}
+
+	parts := strings.Split(res, ",")
+	if len(parts) != 2 {
+		return 0, fmt.Errorf("invalid response: %s", res)
+	}
+
+	mode, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return 0, fmt.Errorf("unable to parse vfo response: %w", err)
+	}
+
+	return VfoMode(mode), nil
+}
+
+func (r *Radio) SetVFOMode(vfo string, mode VfoMode) error {
+	_, err := r.SendCommand("VM", vfo, fmt.Sprintf("%d", mode))
+	if err != nil {
+		return fmt.Errorf("failed to set mode for vfo %s: %w", vfo, err)
 	}
 
 	return nil
