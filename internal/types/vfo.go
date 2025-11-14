@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -93,40 +92,22 @@ func (v VFO) Serialize() string {
 	)
 }
 
-// MarshalJSON implements custom JSON marshaling with human-friendly values
-func (v VFO) MarshalJSON() ([]byte, error) {
-	// Create a struct with human-friendly representations
-	humanFriendly := struct {
-		VFO       int    `json:"VFO"`
-		RxFreq    string `json:"RxFreq"`
-		RxStep    string `json:"RxStep"`
-		Shift     string `json:"Shift"`
-		Reverse   string `json:"Reverse"`
-		Tone      string `json:"Tone"`
-		CTCSS     string `json:"CTCSS"`
-		DCS       string `json:"DCS"`
-		ToneFreq  string `json:"ToneFreq"`
-		CTCSSFreq string `json:"CTCSSFreq"`
-		DCSCode   string `json:"DCSFreq"`
-		Offset    string `json:"Offset"`
-		Mode      string `json:"Mode"`
-	}{
-		VFO:       v.VFO,
-		RxFreq:    NewFrequencyMHz(&v.RxFreq).String(),
-		RxStep:    NewStepSize(&v.RxStep).String(),
-		Shift:     NewShift(&v.Shift).String(),
-		Reverse:   NewBool(&v.Reverse).String(),
-		Tone:      NewBool(&v.Tone).String(),
-		CTCSS:     NewBool(&v.CTCSS).String(),
-		DCS:       NewBool(&v.DCS).String(),
-		ToneFreq:  NewTone(&v.ToneFreq).String(),
-		CTCSSFreq: NewTone(&v.CTCSSFreq).String(),
-		DCSCode:   NewDCS(&v.DCSCode).String(),
-		Offset:    NewFrequencyMHz(&v.Offset).String(),
-		Mode:      NewMode(&v.Mode).String(),
+func (v VFO) Values() []string {
+	return []string{
+		fmt.Sprintf("%d", v.VFO),
+		NewFrequencyMHz(&v.RxFreq).String(),
+		NewStepSize(&v.RxStep).String(),
+		NewShift(&v.Shift).String(),
+		NewBool(&v.Reverse).String(),
+		NewBool(&v.Tone).String(),
+		NewBool(&v.CTCSS).String(),
+		NewBool(&v.DCS).String(),
+		NewTone(&v.ToneFreq).String(),
+		NewTone(&v.CTCSSFreq).String(),
+		NewDCS(&v.DCSCode).String(),
+		NewFrequencyMHz(&v.Offset).String(),
+		NewMode(&v.Mode).String(),
 	}
-
-	return json.Marshal(humanFriendly)
 }
 
 // FO 1,0145090000,0,0,0,0,0,0,08,08,000,00000000,0

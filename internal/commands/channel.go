@@ -8,6 +8,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
+	"github.com/larsks/kwctl/internal/formatters"
 	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
 	"github.com/larsks/kwctl/internal/types"
@@ -88,5 +89,12 @@ func (c ChannelCommand) Run(r *radio.Radio, ctx config.Context, args []string) (
 		return "", fmt.Errorf("failed to get current channel: %w", err)
 	}
 
-	return channel.String(), nil
+	if ctx.Config.Pretty {
+		formatter := formatters.NewTableFormatter(formatters.HeadersFromStruct(types.Channel{}))
+		formatter.Update([][]string{channel.Values()})
+		formatter.Render(nil)
+		return "", nil
+	} else {
+		return channel.String(), nil
+	}
 }
