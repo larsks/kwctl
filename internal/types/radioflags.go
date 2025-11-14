@@ -12,7 +12,6 @@ type RadioFlagValues struct {
 	RxStep    int
 	Mode      int
 	Shift     int
-	Reverse   int
 	Offset    int
 	ToneFreq  int
 	CTCSSFreq int
@@ -26,7 +25,8 @@ func AddRadioSettingFlags(flags *flag.FlagSet, values *RadioFlagValues) {
 	flags.VarP(NewStepSize(&values.RxStep), "rxstep", "", "step size in hz (e.g., 5)")
 	flags.VarP(NewMode(&values.Mode), "mode", "", "Mode (FM, NFM, AM)")
 	flags.VarP(NewShift(&values.Shift), "shift", "s", "Shift (simplex, up, down)")
-	flags.VarP(NewBool(&values.Reverse), "reverse", "", "reverse tx/rx")
+	flags.Bool("reverse", false, "reverse tx/rx")
+	flags.Bool("no-reverse", false, "disable reverse tx/rx")
 	flags.VarP(NewFrequencyMHz(&values.Offset), "offset", "o", "offset in MHz (e.g., 0.6)")
 	flags.StringP("tone-mode", "t", "none", "select tone mode (none, tone, tsql, dcs)")
 	flags.VarP(NewTone(&values.ToneFreq), "txtone", "", "CTCSS tone when sending")
@@ -48,7 +48,9 @@ func ApplyRadioSettingFlags(flags *flag.FlagSet, values *RadioFlagValues, target
 		case "shift":
 			target.SetShift(values.Shift)
 		case "reverse":
-			target.SetReverse(values.Reverse)
+			target.SetReverse(1)
+		case "no-reverse":
+			target.SetReverse(0)
 		case "offset":
 			target.SetOffset(values.Offset)
 		case "tone-mode":

@@ -42,6 +42,7 @@ func (c *ChannelEditCommand) Init() error {
 	c.flags.VarP(types.NewFrequencyMHz(&c.txFreq), "txfreq", "", "frequency in MHz (e.g., 144.39)")
 	c.flags.VarP(types.NewStepSize(&c.txStep), "txstep", "", "step size in hz (e.g., 5)")
 	c.flags.Bool("lockout", false, "skip channel during scan")
+	c.flags.Bool("no-lockout", false, "don't skip channel during scan")
 	c.flags.BoolVarP(&c.clear, "clear", "", false, "clear channel")
 	c.flags.IntVarP(&c.srcChannel, "copy", "", -1, "copy data from another channel")
 
@@ -116,12 +117,9 @@ func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 		case "txstep":
 			channel.TxStep = c.txStep
 		case "lockout":
-			val, _ := c.flags.GetBool("lockout")
-			if val {
-				channel.Lockout = 1
-			} else {
-				channel.Lockout = 0
-			}
+			channel.Lockout = 1
+		case "no-lockout":
+			channel.Lockout = 0
 		case "name":
 			channel.Name = c.channelName
 		}
