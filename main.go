@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"strconv"
 
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/commands"
 	"github.com/larsks/kwctl/internal/config"
+	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
 )
 
@@ -18,22 +18,14 @@ var (
 	ctx config.Context
 )
 
-func getEnvWithDefault(name, default_value string) string {
-	val := os.Getenv(name)
-	if val == "" {
-		val = default_value
-	}
-	return val
-}
-
 func init() {
 	ctx.Logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelWarn,
 	}))
-	flag.StringVarP(&ctx.Config.Bitrate, "bitrate", "b", getEnvWithDefault("KWCTL_BPS", "9600"), "bit rate (serial only)")
+	flag.IntVarP(&ctx.Config.Bitrate, "bitrate", "b", helpers.GetEnvWithDefault("KWCTL_BPS", 9600), "bit rate (serial only)")
 	flag.CountVarP(&ctx.Config.Verbose, "verbose", "v", "increase logging verbosity")
-	flag.StringVarP(&ctx.Config.Vfo, "vfo", "", getEnvWithDefault("KWCTL_VFO", "0"), "select vfo on which to operate")
-	flag.StringVarP(&ctx.Config.Device, "device", "d", getEnvWithDefault("KWCTL_DEVICE", "/dev/ttyS0"), "serial device")
+	flag.StringVarP(&ctx.Config.Vfo, "vfo", "", helpers.GetEnvWithDefault("KWCTL_VFO", "0"), "select vfo on which to operate")
+	flag.StringVarP(&ctx.Config.Device, "device", "d", helpers.GetEnvWithDefault("KWCTL_DEVICE", "/dev/ttyS0"), "serial device")
 }
 
 func main() {
@@ -51,11 +43,6 @@ func main() {
 		Level: logLevel,
 	}))
 
-	bitrate, err := strconv.Atoi(ctx.Config.Bitrate)
-	if err != nil {
-		ctx.Logger.Error("invalid bitrate", "bitrate", ctx.Config.Bitrate)
-		os.Exit(1)
-	}
 	// Parse command
 	args := flag.Args()
 	if len(args) == 0 {
@@ -68,7 +55,7 @@ func main() {
 	commandArgs := args[1:]
 
 	if handler := commands.Lookup(command); handler != nil {
-		r := radio.NewRadio(ctx.Config.Device, bitrate).WithLogger(ctx.Logger)
+		r := radio.NewRadio(ctx.Config.Device, ctx.Config.Bitrate).WithLogger(ctx.Logger)
 
 		if err := r.Open(); err != nil {
 			ctx.Logger.Error("failed to open radio", "device", ctx.Config.Device, "error", err)
