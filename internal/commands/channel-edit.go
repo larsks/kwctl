@@ -36,13 +36,14 @@ func (c *ChannelEditCommand) Init() error {
 	c.flags.VarP(types.NewStepSize(&c.channel.RxStep), "rxstep", "s", "step size in hz (e.g., 5)")
 	c.flags.VarP(types.NewMode(&c.channel.Mode), "mode", "m", "Mode (FM, NFM, AM)")
 	c.flags.VarP(types.NewShift(&c.channel.Shift), "shift", "t", "Shift (simplex, up, down)")
+	c.flags.VarP(types.NewFrequencyMHz(&c.channel.Offset), "offset", "", "offset in MHz (e.g., 0.6)")
 	c.flags.StringP("tone-mode", "", "none", "select tone mode (none, tone, tsql, dcs)")
 	c.flags.VarP(types.NewTone(&c.channel.ToneFreq), "txtone", "", "CTCSS tone when sending")
 	c.flags.VarP(types.NewTone(&c.channel.CTCSSFreq), "rxtone", "", "CTCSS tone when receiving")
 	c.flags.VarP(types.NewDCS(&c.channel.DCSCode), "dcs", "", "DCS code")
 	c.flags.VarP(types.NewFrequencyMHz(&c.channel.TxFreq), "txfreq", "", "frequency in MHz (e.g., 144.39)")
 	c.flags.VarP(types.NewStepSize(&c.channel.TxStep), "txstep", "", "step size in hz (e.g., 5)")
-	c.flags.VarP(types.NewBool(&c.channel.Lock), "lockout", "", "skip channel during scan")
+	c.flags.Bool("lockout", false, "skip channel during scan")
 	c.flags.BoolVarP(&c.clear, "clear", "", false, "clear channel")
 	c.flags.IntVarP(&c.srcChannel, "copy", "", -1, "copy data from another channel")
 
@@ -120,8 +121,15 @@ func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 			channel.Mode = c.channel.Mode
 		case "shift":
 			channel.Shift = c.channel.Shift
+		case "offset":
+			channel.Offset = c.channel.Offset
 		case "lockout":
-			channel.Lock = c.channel.Lock
+			val, _ := c.flags.GetBool("lockout")
+			if val {
+				channel.Lockout = 1
+			} else {
+				channel.Lockout = 0
+			}
 		case "tone-mode":
 			switch f.Value.String() {
 			case "none":
