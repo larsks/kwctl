@@ -9,7 +9,9 @@ GOLDFLAGS = \
 	    -X '$(PKG)/internal/commands.Commit=$(COMMIT)' \
 	    -X '$(PKG)/internal/commands.Date=$(DATE)'
 
-all: build
+GOFILES = $(shell go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}}{{"\n"}}{{end}}' ./...)
 
-build:
-	go build -ldflags "$(GOLDFLAGS)" ./cmd/kwctl
+all: kwctl
+
+kwctl: $(GOFILES)
+	go build -o $@ -ldflags "$(GOLDFLAGS)" ./cmd/kwctl
