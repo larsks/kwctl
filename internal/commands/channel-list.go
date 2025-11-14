@@ -75,9 +75,9 @@ func (c *ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 			}
 
 			if channel.RxFreq == 0 {
-				fmt.Printf("[%-6s] %03d\n", channel.Name, channelNumber)
+				fmt.Printf("[      ] %03d\n", channelNumber)
 			} else {
-				fmt.Printf("[%-6s] %s\n", channel.Name, channel)
+				fmt.Printf("%s\n", channel)
 			}
 		}
 	}
