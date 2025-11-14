@@ -73,11 +73,11 @@ func (c *TuneCommand) Run(r *radio.Radio, ctx config.Context, args []string) (st
 		if err != nil {
 			return "", fmt.Errorf("failed to tune vfo: %w", err)
 		}
+		vfo, err = types.ParseVFO(res)
+		if err != nil {
+			return "", fmt.Errorf("failed to parse vfo configuration: %w", err)
+		}
 	}
 
-	vfo, err = types.ParseVFO(res)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse vfo configuration: %w", err)
-	}
 	return fmt.Sprintf("%s\n", vfo), nil
 }
