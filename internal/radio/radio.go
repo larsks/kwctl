@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"go.bug.st/serial"
+
+	"github.com/larsks/kwctl/internal/types"
 )
 
 type (
@@ -172,6 +174,61 @@ func (r *Radio) Check() error {
 
 	if id != "TM-V71" {
 		return fmt.Errorf("incompatible radio: want TM-V71, have %s", id)
+	}
+
+	return nil
+}
+
+func (r *Radio) ClearMemoryChannel(channelNumber int) error {
+	channelString := fmt.Sprintf("%03d", channelNumber)
+	_, err := r.SendCommand("ME", channelString, "C")
+	if err != nil {
+		return fmt.Errorf("failed to clear channel %d: %w", channelNumber, err)
+	}
+
+	return nil
+}
+
+func (r *Radio) GetMemoryChannel(channelNumber int) (types.Channel, error) {
+	channelString := fmt.Sprintf("%03d", channelNumber)
+
+	res, err := r.SendCommand("MN", channelString)
+	if err != nil {
+		return types.EmptyChannel, fmt.Errorf("failed to get name for channel %d: %w", channelNumber, err)
+	}
+	parts := strings.SplitN(res, ",", 2)
+	if len(parts) != 2 {
+		return types.EmptyChannel, fmt.Errorf("invalid response for channel %d", channelNumber)
+	}
+	channelName := parts[1]
+
+	res, err = r.SendCommand("ME", channelString)
+	if err != nil {
+		return types.EmptyChannel, fmt.Errorf("failed to read data for channel %d: %w", channelNumber, err)
+	}
+
+	channel, err := types.ParseChannel(res)
+	if err != nil {
+		return types.EmptyChannel, fmt.Errorf("failed to parse data for channel %d: %w", channelNumber, err)
+	}
+
+	channel.Name = channelName
+
+	return channel, nil
+}
+
+func (r *Radio) SetMemoryChannel(channel types.Channel) error {
+	channelString := fmt.Sprintf("%03d", channel.Number)
+	_, err := r.SendCommand("ME", channel.Serialize())
+	if err != nil {
+		return fmt.Errorf("failed to set channel %d: %w", channel.Number, err)
+	}
+
+	if channel.Name != "" {
+		_, err := r.SendCommand("MN", channelString, strings.ToUpper(channel.Name))
+		if err != nil {
+			return fmt.Errorf("failed to set name for channel %d: %w", channel.Number, err)
+		}
 	}
 
 	return nil
