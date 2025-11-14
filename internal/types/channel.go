@@ -85,7 +85,7 @@ func ParseChannel(s string) (Channel, error) {
 
 // ME 101,0145090000,0,0,0,0,0,0,08,08,000,00000000,0,0000000000,0,1
 func (c Channel) String() string {
-	return strings.Join([]string{
+	return fmt.Sprintf("[%-6s] ", c.Name) + strings.Join([]string{
 		fmt.Sprintf("%03d", c.Number),
 		NewFrequencyMHz(&c.RxFreq).String(),
 		NewStepSize(&c.RxStep).String(),

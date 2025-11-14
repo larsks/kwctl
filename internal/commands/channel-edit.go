@@ -175,5 +175,5 @@ func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 		}
 	}
 
-	return fmt.Sprintf("[%-6s] %s\n", channel.Name, channel), nil
+	return fmt.Sprintf("%s\n", channel), nil
 }
