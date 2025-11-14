@@ -22,6 +22,10 @@ func init() {
 	Register("vfo", &VFOCommand{})
 }
 
+func (c *VFOCommand) NeedsRadio() bool {
+	return true
+}
+
 //nolint:errcheck
 func (c *VFOCommand) Init() error {
 	c.flags = flag.NewFlagSet("vfo", flag.ContinueOnError)

@@ -10,6 +10,7 @@ import (
 type (
 	Command interface {
 		Init() error
+		NeedsRadio() bool
 		Run(r *radio.Radio, ctx config.Context, args []string) (string, error)
 	}
 )

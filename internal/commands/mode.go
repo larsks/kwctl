@@ -31,6 +31,10 @@ var modeNames map[string]string = map[string]string{
 
 var modeNumbers map[string]string = helpers.ReverseMap(modeNames)
 
+func (c *ModeCommand) NeedsRadio() bool {
+	return true
+}
+
 func (c *ModeCommand) Init() error {
 	c.flags = flag.NewFlagSet("mode", flag.ContinueOnError)
 	c.flags.SetOutput(os.Stdout)

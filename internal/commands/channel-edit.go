@@ -30,6 +30,10 @@ func init() {
 	Register("channel-edit", &ChannelEditCommand{}, "edit")
 }
 
+func (c *ChannelEditCommand) NeedsRadio() bool {
+	return true
+}
+
 //nolint:errcheck
 func (c *ChannelEditCommand) Init() error {
 	c.flags = flag.NewFlagSet("channel-edit", flag.ContinueOnError)
