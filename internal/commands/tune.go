@@ -16,7 +16,7 @@ type (
 	TuneCommand struct {
 		flags        *flag.FlagSet
 		forceVfoMode bool
-		vfo          types.VFO
+		radioFlags   types.RadioFlagValues
 	}
 )
 
@@ -28,15 +28,10 @@ func init() {
 func (c *TuneCommand) Init() error {
 	c.flags = flag.NewFlagSet("id", flag.ContinueOnError)
 	c.flags.BoolVarP(&c.forceVfoMode, "force", "f", false, "change to vfo mode before tuning")
-	c.flags.VarP(types.NewFrequencyMHz(&c.vfo.RxFreq), "rxfreq", "r", "frequency in MHz (e.g., 144.39)")
-	c.flags.VarP(types.NewStepSize(&c.vfo.RxStep), "rxstep", "s", "step size in hz (e.g., 5)")
-	c.flags.VarP(types.NewMode(&c.vfo.Mode), "mode", "m", "Mode (FM, NFM, AM)")
-	c.flags.VarP(types.NewShift(&c.vfo.Shift), "shift", "t", "Shift (simplex, up, down)")
-	c.flags.VarP(types.NewFrequencyMHz(&c.vfo.Offset), "offset", "", "offset in MHz (e.g., 0.6)")
-	c.flags.StringP("tone-mode", "", "none", "select tone mode (none, tone, tsql, dcs)")
-	c.flags.VarP(types.NewTone(&c.vfo.ToneFreq), "txtone", "", "CTCSS tone when sending")
-	c.flags.VarP(types.NewTone(&c.vfo.CTCSSFreq), "rxtone", "", "CTCSS tone when receiving")
-	c.flags.VarP(types.NewDCS(&c.vfo.DCSCode), "dcs", "", "DCS code")
+
+	// Add common radio setting flags
+	types.AddRadioSettingFlags(c.flags, &c.radioFlags)
+
 	c.flags.SetOutput(os.Stdout)
 	c.flags.Usage = func() {
 		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
@@ -62,45 +57,8 @@ func (c *TuneCommand) Run(r *radio.Radio, ctx config.Context, args []string) (st
 	}
 	oldVfo := vfo
 
-	c.flags.Visit(func(f *flag.Flag) {
-		switch f.Name {
-		case "rxfreq":
-			vfo.RxFreq = c.vfo.RxFreq
-		case "rxstep":
-			vfo.RxStep = c.vfo.RxStep
-		case "mode":
-			vfo.Mode = c.vfo.Mode
-		case "shift":
-			vfo.Shift = c.vfo.Shift
-		case "offset":
-			vfo.Offset = c.vfo.Offset
-		case "tone-mode":
-			switch f.Value.String() {
-			case "none":
-				vfo.Tone = 0
-				vfo.CTCSS = 0
-				vfo.DCS = 0
-			case "tone":
-				vfo.Tone = 1
-				vfo.CTCSS = 0
-				vfo.DCS = 0
-			case "tsql":
-				vfo.Tone = 1
-				vfo.CTCSS = 1
-				vfo.DCS = 0
-			case "dcs":
-				vfo.Tone = 0
-				vfo.CTCSS = 0
-				vfo.DCS = 1
-			}
-		case "txtone":
-			vfo.ToneFreq = c.vfo.ToneFreq
-		case "rxtone":
-			vfo.CTCSSFreq = c.vfo.CTCSSFreq
-		case "dcs":
-			vfo.DCSCode = c.vfo.DCSCode
-		}
-	})
+	// Apply common radio settings
+	types.ApplyRadioSettingFlags(c.flags, &c.radioFlags, &vfo)
 
 	if vfo != oldVfo {
 		if c.forceVfoMode {

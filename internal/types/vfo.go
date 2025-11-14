@@ -147,3 +147,34 @@ func (v VFO) String() string {
 		NewMode(&v.Mode).String(),
 	}, ",")
 }
+
+// RadioSettable interface implementation
+
+func (v *VFO) GetRxFreq() int     { return v.RxFreq }
+func (v *VFO) SetRxFreq(val int)  { v.RxFreq = val }
+func (v *VFO) GetRxStep() int     { return v.RxStep }
+func (v *VFO) SetRxStep(val int)  { v.RxStep = val }
+func (v *VFO) GetMode() int       { return v.Mode }
+func (v *VFO) SetMode(val int)    { v.Mode = val }
+func (v *VFO) GetShift() int      { return v.Shift }
+func (v *VFO) SetShift(val int)   { v.Shift = val }
+func (v *VFO) GetReverse() int    { return v.Reverse }
+func (v *VFO) SetReverse(val int) { v.Reverse = val }
+func (v *VFO) GetOffset() int     { return v.Offset }
+func (v *VFO) SetOffset(val int)  { v.Offset = val }
+func (v *VFO) GetTone() int       { return v.Tone }
+func (v *VFO) SetTone(val int)    { v.Tone = val }
+func (v *VFO) GetCTCSS() int      { return v.CTCSS }
+func (v *VFO) SetCTCSS(val int)   { v.CTCSS = val }
+func (v *VFO) GetDCS() int        { return v.DCS }
+func (v *VFO) SetDCS(val int)     { v.DCS = val }
+func (v *VFO) GetToneFreq() int   { return v.ToneFreq }
+func (v *VFO) SetToneFreq(val int) {
+	v.ToneFreq = val
+}
+func (v *VFO) GetCTCSSFreq() int { return v.CTCSSFreq }
+func (v *VFO) SetCTCSSFreq(val int) {
+	v.CTCSSFreq = val
+}
+func (v *VFO) GetDCSCode() int    { return v.DCSCode }
+func (v *VFO) SetDCSCode(val int) { v.DCSCode = val }
