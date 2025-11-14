@@ -127,7 +127,7 @@ func (r *Radio) SendCommand(cmd string, args ...string) (string, error) {
 		command = fmt.Sprintf("%s\r", cmd)
 	}
 
-	r.logger.Info("sending command", "cmd", command)
+	r.logger.Debug("sending command", "cmd", command)
 	if _, err := r.port.Write([]byte(command)); err != nil {
 		return "", fmt.Errorf("failed to write command: %w", err)
 	}
@@ -172,7 +172,7 @@ func (r *Radio) SendCommand(cmd string, args ...string) (string, error) {
 		return "", nil
 	}
 
-	r.logger.Info("received response", "response", parts[1])
+	r.logger.Debug("received response", "response", parts[1])
 	return parts[1], nil
 }
 

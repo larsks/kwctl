@@ -9,6 +9,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
+	"github.com/larsks/kwctl/internal/formatters"
 	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
 	"github.com/larsks/kwctl/internal/types"
@@ -144,5 +145,12 @@ func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 		}
 	}
 
-	return fmt.Sprintf("%s\n", channel), nil
+	if ctx.Config.Pretty {
+		formatter := formatters.NewTableFormatter(formatters.HeadersFromStruct(types.Channel{}))
+		formatter.Update([][]string{channel.Values()})
+		formatter.Render(nil)
+		return "", nil
+	} else {
+		return fmt.Sprintf("%s\n", channel), nil
+	}
 }

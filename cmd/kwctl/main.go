@@ -26,6 +26,7 @@ func init() {
 	flag.CountVarP(&ctx.Config.Verbose, "verbose", "v", "increase logging verbosity")
 	flag.StringVarP(&ctx.Config.Vfo, "vfo", "", helpers.GetEnvWithDefault("KWCTL_VFO", "0"), "select vfo on which to operate")
 	flag.StringVarP(&ctx.Config.Device, "device", "d", helpers.GetEnvWithDefault("KWCTL_DEVICE", "/dev/ttyS0"), "serial device")
+	flag.BoolVarP(&ctx.Config.Pretty, "pretty", "p", helpers.GetEnvWithDefault("KWCTL_PRETTY", false), "pretty print output")
 }
 
 func main() {

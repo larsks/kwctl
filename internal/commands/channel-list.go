@@ -8,6 +8,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
+	"github.com/larsks/kwctl/internal/formatters"
 	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/internal/radio"
 	"github.com/larsks/kwctl/internal/types"
@@ -60,8 +61,14 @@ func (c *ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 		ranges = c.flags.Args()
 	}
 
+	var formatter *formatters.TableFormatter
+	if ctx.Config.Pretty {
+		formatter = formatters.NewTableFormatter(formatters.HeadersFromStruct(types.Channel{}))
+	}
+
 	for _, arg := range ranges {
 		for channelNumber, err := range helpers.RangeIterator(arg) {
+			ctx.Logger.Info("getting information for channel", "channel", channelNumber)
 			if err != nil {
 				return "", fmt.Errorf("invalid range: %w", err)
 			}
@@ -78,12 +85,23 @@ func (c *ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 				}
 			}
 
-			if channel.RxFreq == 0 {
-				fmt.Printf("[      ] %03d\n", channelNumber)
+			if ctx.Config.Pretty {
+				if channel.RxFreq != 0 {
+					formatter.Update([][]string{channel.Values()})
+				}
 			} else {
-				fmt.Printf("%s\n", channel)
+				if channel.RxFreq == 0 {
+					fmt.Printf("[      ] %03d\n", channelNumber)
+				} else {
+					fmt.Printf("%s\n", channel)
+				}
 			}
 		}
 	}
+
+	if ctx.Config.Pretty {
+		formatter.Render(nil)
+	}
+
 	return "", nil
 }

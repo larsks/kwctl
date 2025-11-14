@@ -83,7 +83,30 @@ func ParseChannel(s string) (Channel, error) {
 	}, nil
 }
 
-// ME 101,0145090000,0,0,0,0,0,0,08,08,000,00000000,0,0000000000,0,1
+// Produce a row suitable for table formatting
+func (c Channel) Values() []string {
+	return []string{
+		c.Name,
+		fmt.Sprintf("%03d", c.Number),
+		NewFrequencyMHz(&c.RxFreq).String(),
+		NewStepSize(&c.RxStep).String(),
+		NewShift(&c.Shift).String(),
+		NewBool(&c.Reverse).String(),
+		NewBool(&c.Tone).String(),
+		NewBool(&c.CTCSS).String(),
+		NewBool(&c.DCS).String(),
+		NewTone(&c.ToneFreq).String(),
+		NewTone(&c.CTCSSFreq).String(),
+		NewDCS(&c.DCSCode).String(),
+		NewFrequencyMHz(&c.Offset).String(),
+		NewMode(&c.Mode).String(),
+		NewFrequencyMHz(&c.TxFreq).String(),
+		NewStepSize(&c.TxStep).String(),
+		NewBool(&c.Lockout).String(),
+	}
+}
+
+// Produce human friendly output
 func (c Channel) String() string {
 	return fmt.Sprintf("[%-6s] ", c.Name) + strings.Join([]string{
 		fmt.Sprintf("%03d", c.Number),
@@ -105,6 +128,7 @@ func (c Channel) String() string {
 	}, ",")
 }
 
+// Produce format expected by radio commands
 func (c Channel) Serialize() string {
 	return fmt.Sprintf("%03d,%010d,%d,%d,%d,%d,%d,%d,%02d,%02d,%03d,%08d,%d,%010d,%d,%d",
 		c.Number,

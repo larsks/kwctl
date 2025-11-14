@@ -10,6 +10,7 @@ type (
 		Verbose int
 		Vfo     string
 		Device  string
+		Pretty  bool
 	}
 
 	Context struct {
