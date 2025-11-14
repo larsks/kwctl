@@ -16,4 +16,4 @@ GOLDFLAGS = \
 all: build
 
 build:
-	go build -ldflags "$(GOLDFLAGS)"
+	go build -ldflags "$(GOLDFLAGS)" ./cmd/kwctl
