@@ -39,6 +39,7 @@ func (c *ModeCommand) Init() error {
 	c.flags = flag.NewFlagSet("mode", flag.ContinueOnError)
 	c.flags.SetOutput(os.Stdout)
 	c.flags.Usage = func() {
+		//nolint:errcheck
 		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
 			Usage: kwctl mode [vfo|memory|call|wx]
 

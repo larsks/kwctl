@@ -38,6 +38,7 @@ func (c *TxPowerCommand) Init() error {
 	c.flags = flag.NewFlagSet("txpower", flag.ContinueOnError)
 	c.flags.SetOutput(os.Stdout)
 	c.flags.Usage = func() {
+		//nolint:errcheck
 		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
 			Usage: kwctl txpower [high|medium|low]
 
