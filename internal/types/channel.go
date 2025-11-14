@@ -43,7 +43,7 @@ type (
 		Mode      int
 		TxFreq    int
 		TxStep    int
-		Lock      int
+		Lockout   int
 	}
 )
 
@@ -79,7 +79,7 @@ func ParseChannel(s string) (Channel, error) {
 		Mode:      parts[12],
 		TxFreq:    parts[13],
 		TxStep:    parts[14],
-		Lock:      parts[15],
+		Lockout:   parts[15],
 	}, nil
 }
 
@@ -101,7 +101,7 @@ func (c Channel) String() string {
 		NewMode(&c.Mode).String(),
 		NewFrequencyMHz(&c.TxFreq).String(),
 		NewStepSize(&c.TxStep).String(),
-		NewBool(&c.Lock).String(),
+		NewBool(&c.Lockout).String(),
 	}, ",")
 }
 
@@ -122,6 +122,6 @@ func (c Channel) Serialize() string {
 		c.Mode,
 		c.TxFreq,
 		c.TxStep,
-		c.Lock,
+		c.Lockout,
 	)
 }
