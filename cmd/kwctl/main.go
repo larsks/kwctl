@@ -22,7 +22,7 @@ func init() {
 	ctx.Logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelWarn,
 	}))
-	flag.IntVarP(&ctx.Config.Bitrate, "bitrate", "b", helpers.GetEnvWithDefault("KWCTL_BPS", 9600), "bit rate (serial only)")
+	flag.IntVarP(&ctx.Config.Bps, "bps", "b", helpers.GetEnvWithDefault("KWCTL_BPS", 9600), "bit rate (serial only)")
 	flag.CountVarP(&ctx.Config.Verbose, "verbose", "v", "increase logging verbosity")
 	flag.StringVarP(&ctx.Config.Vfo, "vfo", "", helpers.GetEnvWithDefault("KWCTL_VFO", "0"), "select vfo on which to operate")
 	flag.StringVarP(&ctx.Config.Device, "device", "d", helpers.GetEnvWithDefault("KWCTL_DEVICE", "/dev/ttyS0"), "serial device")
@@ -59,7 +59,7 @@ func main() {
 		var r *radio.Radio
 
 		if handler.NeedsRadio() {
-			r = radio.NewRadio(ctx.Config.Device, ctx.Config.Bitrate).WithLogger(ctx.Logger)
+			r = radio.NewRadio(ctx.Config.Device, ctx.Config.Bps).WithLogger(ctx.Logger)
 
 			if err := r.Open(); err != nil {
 				ctx.Logger.Error("failed to open radio", "device", ctx.Config.Device, "error", err)

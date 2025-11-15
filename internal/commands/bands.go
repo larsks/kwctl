@@ -44,9 +44,7 @@ func (c *BandsCommand) Init() error {
 		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
 			Usage: kwctl bands [dual|single]
 
-			Select dual or single band mode.
-
-			Options:
+			Get or set dual/single band mode.
 		`))
 	}
 	c.flags.PrintDefaults()

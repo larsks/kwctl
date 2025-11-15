@@ -28,7 +28,7 @@ type (
 )
 
 func init() {
-	Register("channel-edit", &ChannelEditCommand{}, "edit")
+	Register("edit", &ChannelEditCommand{})
 }
 
 func (c *ChannelEditCommand) NeedsRadio() bool {

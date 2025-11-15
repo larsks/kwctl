@@ -36,12 +36,10 @@ func (c *ChannelCommand) Init() error {
 		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
 			Usage: kwctl channel [options] [<channel>|up|down]
 
-			Get or set the current channel.
+			Get or set the current channel of the selected vfo.
 
 			Arguments:
 				channel    Channel number (0-999) or 'up'/'down' to increment/decrement
-
-			Options:
 		`))
 		c.flags.PrintDefaults()
 	}
