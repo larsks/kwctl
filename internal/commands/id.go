@@ -34,8 +34,6 @@ func (c *IDCommand) Init() error {
 			Usage: kwctl id
 
 			Display the radio ID response.
-
-			Options:
 		`))
 		c.flags.PrintDefaults()
 	}

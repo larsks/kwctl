@@ -34,9 +34,7 @@ func (c *VFOCommand) Init() error {
 		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
 			Usage: kwctl vfo [0|1]
 
-			Select ptt/control VFO.
-
-			Options:
+			Get or set ptt/control VFO.
 		`))
 		c.flags.PrintDefaults()
 	}

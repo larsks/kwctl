@@ -21,7 +21,7 @@ type (
 )
 
 func init() {
-	Register("channel-list", &ChannelListCommand{}, "list")
+	Register("list", &ChannelListCommand{})
 }
 
 func (c *ChannelListCommand) NeedsRadio() bool {
@@ -40,8 +40,6 @@ func (c *ChannelListCommand) Init() error {
 
 			Arguments:
 				range      A range specification (e.g. "1", "1-10", "1,5,10,15,20")
-
-			Options:
 			`))
 		c.flags.PrintDefaults()
 	}

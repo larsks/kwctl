@@ -42,9 +42,7 @@ func (c *TxPowerCommand) Init() error {
 		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
 			Usage: kwctl txpower [high|medium|low]
 
-			Set the transmit power for the selected VFO.
-
-			Options:
+			Get or set the transmit power for the selected VFO.
 		`))
 		c.flags.PrintDefaults()
 	}

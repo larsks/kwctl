@@ -43,9 +43,7 @@ func (c *ModeCommand) Init() error {
 		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
 			Usage: kwctl mode [vfo|memory|call|wx]
 
-			Set the operating mode for the target VFO.
-
-			Options:
+			Get or set the operating mode for the selected VFO.
 		`))
 		c.flags.PrintDefaults()
 	}
