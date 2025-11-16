@@ -24,17 +24,52 @@ type (
 	}
 
 	VfoMode int
+	TxPower int
 )
 
 const (
-	VFO_MODE_VFO VfoMode = iota
-	VFO_MODE_MEMORY
-	VFO_MODE_CALL
-	VFO_MODE_WX
+	VFO_MODE_VFO    VfoMode = 0
+	VFO_MODE_MEMORY VfoMode = 1
+	VFO_MODE_CALL   VfoMode = 2
+	VFO_MODE_WX     VfoMode = 3
+)
+
+const (
+	TX_POWER_LOW TxPower = iota
+	TX_POWER_MEDIUM
+	TX_POWER_HIGH
 )
 
 var ErrInvalidCommand = errors.New("invalid command")
 var ErrUnavailableCommand = errors.New("command unavailable")
+
+func (v VfoMode) String() string {
+	switch v {
+	case VFO_MODE_VFO:
+		return "vfo"
+	case VFO_MODE_MEMORY:
+		return "memory"
+	case VFO_MODE_CALL:
+		return "call"
+	case VFO_MODE_WX:
+		return "wx"
+	default:
+		return "<invalid>"
+	}
+}
+
+func (t TxPower) String() string {
+	switch t {
+	case TX_POWER_LOW:
+		return "low"
+	case TX_POWER_MEDIUM:
+		return "medium"
+	case TX_POWER_HIGH:
+		return "high"
+	default:
+		return "<invalid>"
+	}
+}
 
 func NewRadio(device string, bitrate int) *Radio {
 	return &Radio{
@@ -318,7 +353,7 @@ func (r *Radio) GetVFOMode(vfo string) (VfoMode, error) {
 		return 0, fmt.Errorf("invalid response: %s", res)
 	}
 
-	mode, err := strconv.Atoi(parts[2])
+	mode, err := strconv.Atoi(parts[1])
 	if err != nil {
 		return 0, fmt.Errorf("unable to parse vfo response: %w", err)
 	}
