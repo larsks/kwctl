@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	flag "github.com/spf13/pflag"
 
@@ -22,14 +21,12 @@ func init() {
 	Register("mode", &ModeCommand{})
 }
 
-var modeNames map[string]string = map[string]string{
-	"vfo":    "0",
-	"memory": "1",
-	"call":   "2",
-	"wx":     "3",
+var modeNames map[string]radio.VfoMode = map[string]radio.VfoMode{
+	"vfo":    radio.VFO_MODE_VFO,
+	"memory": radio.VFO_MODE_MEMORY,
+	"call":   radio.VFO_MODE_CALL,
+	"wx":     radio.VFO_MODE_WX,
 }
-
-var modeNumbers map[string]string = helpers.ReverseMap(modeNames)
 
 func (c *ModeCommand) NeedsRadio() bool {
 	return true
@@ -55,33 +52,28 @@ func (c *ModeCommand) Run(r *radio.Radio, ctx config.Context, args []string) (st
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
-	var res string
 	var err error
+	var mode radio.VfoMode
 
-	if c.flags.NArg() == 0 {
-		res, err = r.SendCommand("VM", ctx.Config.Vfo)
-	} else {
-		num, exists := modeNames[c.flags.Arg(0)]
+	if c.flags.NArg() == 1 {
+		var exists bool
+		mode, exists = modeNames[c.flags.Arg(0)]
 		if !exists {
 			return "", fmt.Errorf("unknown mode: %s", c.flags.Arg(0))
 		}
 
-		res, err = r.SendCommand("VM", ctx.Config.Vfo, num)
+		err = r.SetVFOMode(ctx.Config.Vfo, mode)
+		if err != nil {
+			return "", fmt.Errorf("failed to set mode for vfo %d: %w", ctx.Config.Vfo, err)
+		}
 	}
 
+	mode, err = r.GetVFOMode(ctx.Config.Vfo)
 	if err != nil {
-		return "", fmt.Errorf("mode command failed: %w", err)
+		return "", fmt.Errorf("failed to get mode for vfo %d: %w", ctx.Config.Vfo, err)
 	}
 
-	parts := strings.Split(res, ",")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("invalid response: %s", res)
-	}
+	fmt.Printf("%s\n", mode)
 
-	name, exists := modeNumbers[parts[1]]
-	if !exists {
-		return "", fmt.Errorf("unknown mode: %s", res)
-	}
-
-	return name, nil
+	return "", nil
 }
