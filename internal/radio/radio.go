@@ -35,9 +35,9 @@ const (
 )
 
 const (
-	TX_POWER_LOW TxPower = iota
-	TX_POWER_MEDIUM
-	TX_POWER_HIGH
+	TX_POWER_LOW    TxPower = 2
+	TX_POWER_MEDIUM TxPower = 1
+	TX_POWER_HIGH   TxPower = 0
 )
 
 var ErrInvalidCommand = errors.New("invalid command")
@@ -365,6 +365,34 @@ func (r *Radio) SetVFOMode(vfo string, mode VfoMode) error {
 	_, err := r.SendCommand("VM", vfo, fmt.Sprintf("%d", mode))
 	if err != nil {
 		return fmt.Errorf("failed to set mode for vfo %s: %w", vfo, err)
+	}
+
+	return nil
+}
+
+func (r *Radio) GetTxPower(vfo string) (TxPower, error) {
+	res, err := r.SendCommand("PC", vfo)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read tx power for vfo %s: %w", vfo, err)
+	}
+
+	parts := strings.Split(res, ",")
+	if len(parts) != 2 {
+		return 0, fmt.Errorf("invalid response: %s", res)
+	}
+
+	tx, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return 0, fmt.Errorf("unable to parse txpower response: %w", err)
+	}
+
+	return TxPower(tx), nil
+}
+
+func (r *Radio) SetTxPower(vfo string, tx TxPower) error {
+	_, err := r.SendCommand("PC", vfo, fmt.Sprintf("%d", tx))
+	if err != nil {
+		return fmt.Errorf("failed to set txpower for vfo %s: %w", vfo, err)
 	}
 
 	return nil
