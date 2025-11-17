@@ -41,9 +41,9 @@ func (c *VFOCommand) Init() error {
 	return nil
 }
 
-func (c *VFOCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+func (c *VFOCommand) Run(r *radio.Radio, ctx config.Context, args []string) error {
 	if err := c.flags.Parse(args); err != nil {
-		return "", fmt.Errorf("command failed: %w", err)
+		return fmt.Errorf("command failed: %w", err)
 	}
 
 	var res string
@@ -56,9 +56,11 @@ func (c *VFOCommand) Run(r *radio.Radio, ctx config.Context, args []string) (str
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("failed to select vfo: %w", err)
+		return fmt.Errorf("failed to select vfo: %w", err)
 	}
 
 	parts := strings.Split(res, ",")
-	return fmt.Sprintf("CONTROL: %s, PTT: %s", parts[0], parts[1]), nil
+	fmt.Printf("CONTROL: %s, PTT: %s\n", parts[0], parts[1])
+
+	return nil
 }

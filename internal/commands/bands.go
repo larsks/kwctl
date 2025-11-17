@@ -51,9 +51,9 @@ func (c *BandsCommand) Init() error {
 	return nil
 }
 
-func (c *BandsCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+func (c *BandsCommand) Run(r *radio.Radio, ctx config.Context, args []string) error {
 	if err := c.flags.Parse(args); err != nil {
-		return "", fmt.Errorf("command failed: %w", err)
+		return fmt.Errorf("command failed: %w", err)
 	}
 
 	var res string
@@ -65,24 +65,25 @@ func (c *BandsCommand) Run(r *radio.Radio, ctx config.Context, args []string) (s
 	} else {
 		num, exists := bandsNames[c.flags.Arg(0)]
 		if !exists {
-			return "", fmt.Errorf("unknown bands mode: %s", c.flags.Arg(0))
+			return fmt.Errorf("unknown bands mode: %s", c.flags.Arg(0))
 		}
 		res, err = r.SendCommand("DL", num)
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("bands command failed: %w", err)
+		return fmt.Errorf("bands command failed: %w", err)
 	}
 
 	parts := strings.Split(res, ",")
 	if len(parts) < 1 {
-		return "", fmt.Errorf("invalid response: %s", res)
+		return fmt.Errorf("invalid response: %s", res)
 	}
 
 	name, exists := bandsNumbers[parts[0]]
 	if !exists {
-		return "", fmt.Errorf("unknown bands mode: %s", res)
+		return fmt.Errorf("unknown bands mode: %s", res)
 	}
 
-	return name, nil
+	fmt.Printf("%s\n", name)
+	return nil
 }

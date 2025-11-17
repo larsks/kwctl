@@ -46,9 +46,9 @@ func (c *ChannelCommand) Init() error {
 	return nil
 }
 
-func (c ChannelCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+func (c ChannelCommand) Run(r *radio.Radio, ctx config.Context, args []string) error {
 	if err := c.flags.Parse(args); err != nil {
-		return "", fmt.Errorf("command failed: %w", err)
+		return fmt.Errorf("command failed: %w", err)
 	}
 
 	var err error
@@ -61,7 +61,7 @@ func (c ChannelCommand) Run(r *radio.Radio, ctx config.Context, args []string) (
 		if selected == "up" || selected == "down" {
 			channelNum, err = r.GetCurrentChannelNumber(ctx.Config.Vfo)
 			if err != nil {
-				return "", fmt.Errorf("failed to get channel: %w", err)
+				return fmt.Errorf("failed to get channel: %w", err)
 			}
 
 			if selected == "up" {
@@ -72,27 +72,28 @@ func (c ChannelCommand) Run(r *radio.Radio, ctx config.Context, args []string) (
 		} else {
 			channelNum, err = strconv.Atoi(selected)
 			if err != nil {
-				return "", fmt.Errorf("invalid channel number: %s", selected)
+				return fmt.Errorf("invalid channel number: %s", selected)
 			}
 		}
 
 		// Set channel - zero-pad to 3 digits
 		if err = r.SetCurrentChannel(ctx.Config.Vfo, channelNum); err != nil {
-			return "", fmt.Errorf("failed to set channel: %w", err)
+			return fmt.Errorf("failed to set channel: %w", err)
 		}
 	}
 
 	channel, err = r.GetCurrentChannel(ctx.Config.Vfo)
 	if err != nil {
-		return "", fmt.Errorf("failed to get current channel: %w", err)
+		return fmt.Errorf("failed to get current channel: %w", err)
 	}
 
 	if ctx.Config.Pretty {
 		formatter := formatters.NewTableFormatter(formatters.HeadersFromStruct(types.Channel{}))
 		formatter.Update([][]string{channel.Values()})
 		formatter.Render(nil)
-		return "", nil
 	} else {
-		return channel.String(), nil
+		fmt.Printf("%s\n", channel)
 	}
+
+	return nil
 }

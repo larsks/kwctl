@@ -68,25 +68,25 @@ func (c *ChannelEditCommand) Init() error {
 	return nil
 }
 
-func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []string) error {
 	if err := c.flags.Parse(args); err != nil {
-		return "", fmt.Errorf("command failed: %w", err)
+		return fmt.Errorf("command failed: %w", err)
 	}
 
 	if c.flags.NArg() != 1 {
-		return "", fmt.Errorf("missing channel number")
+		return fmt.Errorf("missing channel number")
 	}
 
 	channelNumber, err := strconv.Atoi(c.flags.Arg(0))
 	if err != nil {
-		return "", fmt.Errorf("invalid channel number")
+		return fmt.Errorf("invalid channel number")
 	}
 
 	if c.clear {
 		if err := r.ClearMemoryChannel(channelNumber); err != nil {
-			return "", fmt.Errorf("failed to clear channel %d: %w", channelNumber, err)
+			return fmt.Errorf("failed to clear channel %d: %w", channelNumber, err)
 		}
-		return "", nil
+		return nil
 	}
 
 	var channel types.Channel
@@ -96,7 +96,7 @@ func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 		oldChannel = types.Channel{Number: channelNumber}
 		channel, err = r.GetMemoryChannel(c.srcChannel)
 		if err != nil {
-			return "", fmt.Errorf("failed to read channel %03d: %w", c.srcChannel, err)
+			return fmt.Errorf("failed to read channel %03d: %w", c.srcChannel, err)
 		}
 		channel.Number = channelNumber
 	} else {
@@ -105,7 +105,7 @@ func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 			if errors.Is(err, radio.ErrUnavailableCommand) {
 				channel = types.Channel{Number: channelNumber}
 			} else {
-				return "", fmt.Errorf("failed to read channel %03d: %w", channelNumber, err)
+				return fmt.Errorf("failed to read channel %03d: %w", channelNumber, err)
 			}
 		}
 		oldChannel = channel
@@ -131,17 +131,17 @@ func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 	})
 
 	if channel == (types.Channel{Number: channelNumber}) {
-		return "", nil
+		return nil
 	}
 
 	if channel != oldChannel {
 		if err := r.SetMemoryChannel(channel); err != nil {
-			return "", fmt.Errorf("failed to set channel %d: %w", channelNumber, err)
+			return fmt.Errorf("failed to set channel %d: %w", channelNumber, err)
 		}
 
 		channel, err = r.GetMemoryChannel(channelNumber)
 		if err != nil {
-			return "", fmt.Errorf("failed to read channel %03d: %w", channelNumber, err)
+			return fmt.Errorf("failed to read channel %03d: %w", channelNumber, err)
 		}
 	}
 
@@ -149,8 +149,9 @@ func (c *ChannelEditCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 		formatter := formatters.NewTableFormatter(formatters.HeadersFromStruct(types.Channel{}))
 		formatter.Update([][]string{channel.Values()})
 		formatter.Render(nil)
-		return "", nil
 	} else {
-		return fmt.Sprintf("%s\n", channel), nil
+		fmt.Printf("%s\n", channel)
 	}
+
+	return nil
 }
