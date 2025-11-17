@@ -47,9 +47,9 @@ func (c *ChannelListCommand) Init() error {
 	return nil
 }
 
-func (c *ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+func (c *ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []string) error {
 	if err := c.flags.Parse(args); err != nil {
-		return "", fmt.Errorf("command failed: %w", err)
+		return fmt.Errorf("command failed: %w", err)
 	}
 
 	var ranges []string
@@ -68,10 +68,10 @@ func (c *ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 		for channelNumber, err := range helpers.RangeIterator(arg) {
 			ctx.Logger.Info("getting information for channel", "channel", channelNumber)
 			if err != nil {
-				return "", fmt.Errorf("invalid range: %w", err)
+				return fmt.Errorf("invalid range: %w", err)
 			}
 			if channelNumber < 0 || channelNumber > 999 {
-				return "", fmt.Errorf("invalid range (channels must be between 0 and 999)")
+				return fmt.Errorf("invalid range (channels must be between 0 and 999)")
 			}
 
 			channel, err := r.GetMemoryChannel(channelNumber)
@@ -79,7 +79,7 @@ func (c *ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 				if errors.Is(err, radio.ErrUnavailableCommand) {
 					channel = types.EmptyChannel
 				} else {
-					return "", fmt.Errorf("failed to list channels: %w", err)
+					return fmt.Errorf("failed to list channels: %w", err)
 				}
 			}
 
@@ -101,5 +101,5 @@ func (c *ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 		formatter.Render(nil)
 	}
 
-	return "", nil
+	return nil
 }

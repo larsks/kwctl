@@ -40,9 +40,16 @@ func (c *IDCommand) Init() error {
 	return nil
 }
 
-func (c *IDCommand) Run(r *radio.Radio, _ config.Context, args []string) (string, error) {
+func (c *IDCommand) Run(r *radio.Radio, _ config.Context, args []string) error {
 	if err := c.flags.Parse(args); err != nil {
-		return "", fmt.Errorf("command failed: %w", err)
+		return fmt.Errorf("command failed: %w", err)
 	}
-	return r.SendCommand("ID")
+	res, err := r.SendCommand("ID")
+	if err != nil {
+		return fmt.Errorf("failed to get radio id: %w", err)
+	}
+
+	fmt.Printf("%s\n", res)
+
+	return nil
 }

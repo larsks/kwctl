@@ -24,11 +24,11 @@ func (c *BuildinfoCommand) Init() error {
 	return nil
 }
 
-func (c *BuildinfoCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+func (c *BuildinfoCommand) Run(r *radio.Radio, ctx config.Context, args []string) error {
 	bi, ok := debug.ReadBuildInfo()
 	if !ok {
-		return "", fmt.Errorf("unable to read buildinfo")
+		return fmt.Errorf("unable to read buildinfo")
 	}
 	fmt.Printf("%s\n", bi)
-	return "", nil
+	return nil
 }

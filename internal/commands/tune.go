@@ -51,14 +51,14 @@ func (c *TuneCommand) Init() error {
 	return nil
 }
 
-func (c *TuneCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+func (c *TuneCommand) Run(r *radio.Radio, ctx config.Context, args []string) error {
 	if err := c.flags.Parse(args); err != nil {
-		return "", fmt.Errorf("command failed: %w", err)
+		return fmt.Errorf("command failed: %w", err)
 	}
 
 	vfo, err := r.GetVFO(ctx.Config.Vfo)
 	if err != nil {
-		return "", fmt.Errorf("failed to read vfo %s: %w", ctx.Config.Vfo, err)
+		return fmt.Errorf("failed to read vfo %s: %w", ctx.Config.Vfo, err)
 	}
 	oldVfo := vfo
 
@@ -69,16 +69,16 @@ func (c *TuneCommand) Run(r *radio.Radio, ctx config.Context, args []string) (st
 		if c.forceVfoMode {
 			err := r.SetVFOMode(ctx.Config.Vfo, radio.VFO_MODE_VFO)
 			if err != nil {
-				return "", fmt.Errorf("failed to change to vfo mode: %w", err)
+				return fmt.Errorf("failed to change to vfo mode: %w", err)
 			}
 		}
 		err := r.SetVFO(ctx.Config.Vfo, vfo)
 		if err != nil {
-			return "", fmt.Errorf("failed to tune vfo %s: %w", ctx.Config.Vfo, err)
+			return fmt.Errorf("failed to tune vfo %s: %w", ctx.Config.Vfo, err)
 		}
 		vfo, err = r.GetVFO(ctx.Config.Vfo)
 		if err != nil {
-			return "", fmt.Errorf("failed to read vfo %s: %w", ctx.Config.Vfo, err)
+			return fmt.Errorf("failed to read vfo %s: %w", ctx.Config.Vfo, err)
 		}
 	}
 
@@ -86,8 +86,9 @@ func (c *TuneCommand) Run(r *radio.Radio, ctx config.Context, args []string) (st
 		formatter := formatters.NewTableFormatter(formatters.HeadersFromStruct(types.VFO{}))
 		formatter.Update([][]string{vfo.Values()})
 		formatter.Render(nil)
-		return "", nil
 	} else {
-		return fmt.Sprintf("%s\n", vfo), nil
+		fmt.Printf("%s\n", vfo)
 	}
+
+	return nil
 }

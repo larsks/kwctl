@@ -47,9 +47,9 @@ func (c *ModeCommand) Init() error {
 	return nil
 }
 
-func (c *ModeCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+func (c *ModeCommand) Run(r *radio.Radio, ctx config.Context, args []string) error {
 	if err := c.flags.Parse(args); err != nil {
-		return "", fmt.Errorf("command failed: %w", err)
+		return fmt.Errorf("command failed: %w", err)
 	}
 
 	var err error
@@ -59,21 +59,21 @@ func (c *ModeCommand) Run(r *radio.Radio, ctx config.Context, args []string) (st
 		var exists bool
 		mode, exists = modeNames[c.flags.Arg(0)]
 		if !exists {
-			return "", fmt.Errorf("unknown mode: %s", c.flags.Arg(0))
+			return fmt.Errorf("unknown mode: %s", c.flags.Arg(0))
 		}
 
 		err = r.SetVFOMode(ctx.Config.Vfo, mode)
 		if err != nil {
-			return "", fmt.Errorf("failed to set mode for vfo %d: %w", ctx.Config.Vfo, err)
+			return fmt.Errorf("failed to set mode for vfo %s: %w", ctx.Config.Vfo, err)
 		}
 	}
 
 	mode, err = r.GetVFOMode(ctx.Config.Vfo)
 	if err != nil {
-		return "", fmt.Errorf("failed to get mode for vfo %d: %w", ctx.Config.Vfo, err)
+		return fmt.Errorf("failed to get mode for vfo %s: %w", ctx.Config.Vfo, err)
 	}
 
 	fmt.Printf("%s\n", mode)
 
-	return "", nil
+	return nil
 }

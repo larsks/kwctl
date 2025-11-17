@@ -28,7 +28,7 @@ func (c *VersionCommand) Init() error {
 	return nil
 }
 
-func (c *VersionCommand) Run(r *radio.Radio, ctx config.Context, args []string) (string, error) {
+func (c *VersionCommand) Run(r *radio.Radio, ctx config.Context, args []string) error {
 	fmt.Printf("kwctl version %s", Version)
 	if Commit != "" {
 		fmt.Printf(" (%s)", Commit)
@@ -37,5 +37,5 @@ func (c *VersionCommand) Run(r *radio.Radio, ctx config.Context, args []string) 
 		fmt.Printf(" at %s", Date)
 	}
 	fmt.Printf("\n")
-	return "", nil
+	return nil
 }

@@ -73,17 +73,13 @@ func main() {
 			}
 		}
 
-		res, err := handler.Run(r, ctx, commandArgs)
+		err := handler.Run(r, ctx, commandArgs)
 		if err != nil {
 			if errors.Is(err, flag.ErrHelp) {
 				return
 			}
 			ctx.Logger.Error("command failed", "command", commandName, "error", err)
 			os.Exit(1)
-		}
-
-		if res != "" {
-			fmt.Printf("%s\n", res)
 		}
 	} else if commandName == "help" {
 		showHelp(os.Stdout)
