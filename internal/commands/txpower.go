@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	flag "github.com/spf13/pflag"
 
@@ -18,13 +17,11 @@ type (
 	}
 )
 
-var txpowerNames map[string]string = map[string]string{
-	"high":   "0",
-	"medium": "1",
-	"low":    "2",
+var txpowerNames map[string]radio.TxPower = map[string]radio.TxPower{
+	"high":   radio.TX_POWER_HIGH,
+	"medium": radio.TX_POWER_MEDIUM,
+	"low":    radio.TX_POWER_LOW,
 }
-
-var txpowerNumbers map[string]string = helpers.ReverseMap(txpowerNames)
 
 func init() {
 	Register("txpower", &TxPowerCommand{})
@@ -54,35 +51,23 @@ func (c *TxPowerCommand) Run(r *radio.Radio, ctx config.Context, args []string) 
 		return "", fmt.Errorf("command failed: %w", err)
 	}
 
-	var res string
-	var err error
-
-	if c.flags.NArg() == 0 {
-		// Get current txpower
-		res, err = r.SendCommand("PC", ctx.Config.Vfo)
-	} else {
+	if c.flags.NArg() == 1 {
 		num, exists := txpowerNames[c.flags.Arg(0)]
 		if !exists {
 			return "", fmt.Errorf("unknown txpower: %s", c.flags.Arg(0))
 		}
-		res, err = r.SendCommand("PC", ctx.Config.Vfo, num)
+		err := r.SetTxPower(ctx.Config.Vfo, num)
+		if err != nil {
+			return "", fmt.Errorf("failed to set txpower: %w", err)
+		}
 	}
 
+	txpower, err := r.GetTxPower(ctx.Config.Vfo)
 	if err != nil {
-		return "", fmt.Errorf("txpower command failed: %w", err)
+		return "", fmt.Errorf("failed to get tx power: %w", err)
 	}
 
-	// Parse response: "vfo,txpower"
-	parts := strings.Split(res, ",")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("invalid response: %s", res)
-	}
+	fmt.Printf("%s\n", txpower)
 
-	// Map txpower value to human-readable string
-	name, exists := txpowerNumbers[parts[1]]
-	if !exists {
-		return "", fmt.Errorf("unknown txpower: %s", res)
-	}
-
-	return name, nil
+	return "", nil
 }
