@@ -3,6 +3,7 @@ package helpers
 import (
 	"os"
 	"strconv"
+	"time"
 )
 
 func GetEnvWithDefault[T any](name string, defaultValue T) (value T) {
@@ -31,6 +32,12 @@ func GetEnvWithDefault[T any](name string, defaultValue T) (value T) {
 		result = v
 	case float64:
 		v, err := strconv.ParseFloat(val, 64)
+		if err != nil {
+			return defaultValue
+		}
+		result = v
+	case time.Duration:
+		v, err := time.ParseDuration(val)
 		if err != nil {
 			return defaultValue
 		}
