@@ -22,7 +22,7 @@ func init() {
 	ctx.Logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelWarn,
 	}))
-	flag.IntVarP(&ctx.Config.Bps, "bps", "b", helpers.GetEnvWithDefault("KWCTL_BPS", 9600), "bit rate (serial only)")
+	flag.IntVarP(&ctx.Config.Bps, "bps", "b", helpers.GetEnvWithDefault("KWCTL_BPS", 9600), "serial port speed")
 	flag.CountVarP(&ctx.Config.Verbose, "verbose", "v", "increase logging verbosity")
 	flag.StringVarP(&ctx.Config.Vfo, "vfo", "", helpers.GetEnvWithDefault("KWCTL_VFO", "0"), "select vfo on which to operate")
 	flag.StringVarP(&ctx.Config.Device, "device", "d", helpers.GetEnvWithDefault("KWCTL_DEVICE", "/dev/ttyS0"), "serial device")
