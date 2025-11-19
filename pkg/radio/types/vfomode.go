@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	vfoModeNames map[string]VfoMode = map[string]VfoMode{
+	vfoModeNames = map[string]VfoMode{
 		"vfo":    VFO_MODE_VFO,
 		"memory": VFO_MODE_MEMORY,
 		"call":   VFO_MODE_CALL,
