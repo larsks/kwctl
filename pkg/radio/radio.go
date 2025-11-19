@@ -12,7 +12,7 @@ import (
 
 	"go.bug.st/serial"
 
-	"github.com/larsks/kwctl/internal/types"
+	"github.com/larsks/kwctl/pkg/radio/types"
 )
 
 type (

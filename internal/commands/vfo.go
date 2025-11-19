@@ -9,7 +9,7 @@ import (
 
 	"github.com/larsks/kwctl/internal/config"
 	"github.com/larsks/kwctl/internal/helpers"
-	"github.com/larsks/kwctl/internal/radio"
+	"github.com/larsks/kwctl/pkg/radio"
 )
 
 type (
