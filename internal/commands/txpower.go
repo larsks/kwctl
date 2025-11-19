@@ -9,6 +9,7 @@ import (
 	"github.com/larsks/kwctl/internal/config"
 	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/pkg/radio"
+	"github.com/larsks/kwctl/pkg/radio/types"
 )
 
 type (
@@ -16,12 +17,6 @@ type (
 		flags *flag.FlagSet
 	}
 )
-
-var txpowerNames map[string]radio.TxPower = map[string]radio.TxPower{
-	"high":   radio.TX_POWER_HIGH,
-	"medium": radio.TX_POWER_MEDIUM,
-	"low":    radio.TX_POWER_LOW,
-}
 
 func init() {
 	Register("txpower", &TxPowerCommand{})
@@ -52,12 +47,11 @@ func (c *TxPowerCommand) Run(r *radio.Radio, ctx config.Context, args []string) 
 	}
 
 	if c.flags.NArg() == 1 {
-		num, exists := txpowerNames[c.flags.Arg(0)]
-		if !exists {
-			return fmt.Errorf("unknown txpower: %s", c.flags.Arg(0))
-		}
-		err := r.SetTxPower(ctx.Config.Vfo, num)
+		tx, err := types.ParseTxPower(c.flags.Arg(0))
 		if err != nil {
+			return fmt.Errorf("failed to parse tx power: %w", err)
+		}
+		if err := r.SetTxPower(ctx.Config.Vfo, tx); err != nil {
 			return fmt.Errorf("failed to set txpower: %w", err)
 		}
 	}
