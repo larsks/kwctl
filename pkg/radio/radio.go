@@ -24,7 +24,6 @@ type (
 	}
 
 	VfoMode int
-	TxPower int
 )
 
 const (
@@ -32,12 +31,6 @@ const (
 	VFO_MODE_MEMORY VfoMode = 1
 	VFO_MODE_CALL   VfoMode = 2
 	VFO_MODE_WX     VfoMode = 3
-)
-
-const (
-	TX_POWER_LOW    TxPower = 2
-	TX_POWER_MEDIUM TxPower = 1
-	TX_POWER_HIGH   TxPower = 0
 )
 
 var ErrInvalidCommand = errors.New("invalid command")
@@ -53,19 +46,6 @@ func (v VfoMode) String() string {
 		return "call"
 	case VFO_MODE_WX:
 		return "wx"
-	default:
-		return "<invalid>"
-	}
-}
-
-func (t TxPower) String() string {
-	switch t {
-	case TX_POWER_LOW:
-		return "low"
-	case TX_POWER_MEDIUM:
-		return "medium"
-	case TX_POWER_HIGH:
-		return "high"
 	default:
 		return "<invalid>"
 	}
@@ -370,7 +350,7 @@ func (r *Radio) SetVFOMode(vfo string, mode VfoMode) error {
 	return nil
 }
 
-func (r *Radio) GetTxPower(vfo string) (TxPower, error) {
+func (r *Radio) GetTxPower(vfo string) (types.TxPower, error) {
 	res, err := r.SendCommand("PC", vfo)
 	if err != nil {
 		return 0, fmt.Errorf("failed to read tx power for vfo %s: %w", vfo, err)
@@ -386,10 +366,10 @@ func (r *Radio) GetTxPower(vfo string) (TxPower, error) {
 		return 0, fmt.Errorf("unable to parse txpower response: %w", err)
 	}
 
-	return TxPower(tx), nil
+	return types.TxPower(tx), nil
 }
 
-func (r *Radio) SetTxPower(vfo string, tx TxPower) error {
+func (r *Radio) SetTxPower(vfo string, tx types.TxPower) error {
 	_, err := r.SendCommand("PC", vfo, fmt.Sprintf("%d", tx))
 	if err != nil {
 		return fmt.Errorf("failed to set txpower for vfo %s: %w", vfo, err)
