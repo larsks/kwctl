@@ -67,7 +67,7 @@ func (c *TuneCommand) Run(r *radio.Radio, ctx config.Context, args []string) err
 
 	if vfo != oldVfo {
 		if c.forceVfoMode {
-			err := r.SetVFOMode(ctx.Config.Vfo, radio.VFO_MODE_VFO)
+			err := r.SetVFOMode(ctx.Config.Vfo, types.VFO_MODE_VFO)
 			if err != nil {
 				return fmt.Errorf("failed to change to vfo mode: %w", err)
 			}

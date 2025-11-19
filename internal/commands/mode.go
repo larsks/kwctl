@@ -9,6 +9,7 @@ import (
 	"github.com/larsks/kwctl/internal/config"
 	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/pkg/radio"
+	"github.com/larsks/kwctl/pkg/radio/types"
 )
 
 type (
@@ -19,13 +20,6 @@ type (
 
 func init() {
 	Register("mode", &ModeCommand{})
-}
-
-var modeNames map[string]radio.VfoMode = map[string]radio.VfoMode{
-	"vfo":    radio.VFO_MODE_VFO,
-	"memory": radio.VFO_MODE_MEMORY,
-	"call":   radio.VFO_MODE_CALL,
-	"wx":     radio.VFO_MODE_WX,
 }
 
 func (c *ModeCommand) NeedsRadio() bool {
@@ -53,13 +47,12 @@ func (c *ModeCommand) Run(r *radio.Radio, ctx config.Context, args []string) err
 	}
 
 	var err error
-	var mode radio.VfoMode
+	var mode types.VfoMode
 
 	if c.flags.NArg() == 1 {
-		var exists bool
-		mode, exists = modeNames[c.flags.Arg(0)]
-		if !exists {
-			return fmt.Errorf("unknown mode: %s", c.flags.Arg(0))
+		mode, err := types.ParseVfoMode(c.flags.Arg(0))
+		if err != nil {
+			return fmt.Errorf("failed to parse vfo mode: %w", err)
 		}
 
 		err = r.SetVFOMode(ctx.Config.Vfo, mode)
