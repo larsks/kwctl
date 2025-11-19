@@ -4,7 +4,7 @@ import (
 	"log/slog"
 
 	"github.com/larsks/kwctl/internal/config"
-	"github.com/larsks/kwctl/internal/radio"
+	"github.com/larsks/kwctl/pkg/radio"
 )
 
 type (

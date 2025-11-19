@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/larsks/kwctl/internal/types"
+	"github.com/larsks/kwctl/pkg/radio/types"
 )
 
 func TestHeadersFromStruct_WithChannel(t *testing.T) {
