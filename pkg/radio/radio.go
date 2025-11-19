@@ -22,34 +22,10 @@ type (
 		port   serial.Port
 		logger *slog.Logger
 	}
-
-	VfoMode int
-)
-
-const (
-	VFO_MODE_VFO    VfoMode = 0
-	VFO_MODE_MEMORY VfoMode = 1
-	VFO_MODE_CALL   VfoMode = 2
-	VFO_MODE_WX     VfoMode = 3
 )
 
 var ErrInvalidCommand = errors.New("invalid command")
 var ErrUnavailableCommand = errors.New("command unavailable")
-
-func (v VfoMode) String() string {
-	switch v {
-	case VFO_MODE_VFO:
-		return "vfo"
-	case VFO_MODE_MEMORY:
-		return "memory"
-	case VFO_MODE_CALL:
-		return "call"
-	case VFO_MODE_WX:
-		return "wx"
-	default:
-		return "<invalid>"
-	}
-}
 
 func NewRadio(device string, bitrate int) *Radio {
 	return &Radio{
@@ -322,7 +298,7 @@ func (r *Radio) SetVFO(vfo string, config types.VFO) error {
 	return nil
 }
 
-func (r *Radio) GetVFOMode(vfo string) (VfoMode, error) {
+func (r *Radio) GetVFOMode(vfo string) (types.VfoMode, error) {
 	res, err := r.SendCommand("VM", vfo)
 	if err != nil {
 		return 0, fmt.Errorf("failed to read mode for vfo %s: %w", vfo, err)
@@ -338,10 +314,10 @@ func (r *Radio) GetVFOMode(vfo string) (VfoMode, error) {
 		return 0, fmt.Errorf("unable to parse vfo response: %w", err)
 	}
 
-	return VfoMode(mode), nil
+	return types.VfoMode(mode), nil
 }
 
-func (r *Radio) SetVFOMode(vfo string, mode VfoMode) error {
+func (r *Radio) SetVFOMode(vfo string, mode types.VfoMode) error {
 	_, err := r.SendCommand("VM", vfo, fmt.Sprintf("%d", mode))
 	if err != nil {
 		return fmt.Errorf("failed to set mode for vfo %s: %w", vfo, err)
