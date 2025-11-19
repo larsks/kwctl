@@ -357,3 +357,37 @@ func (r *Radio) SetTxPower(vfo string, tx types.TxPower) error {
 
 	return nil
 }
+
+func (r *Radio) getPttAndControl() (int, int, error) {
+	res, err := r.SendCommand("BC")
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to get ptt/control: %w", err)
+	}
+
+	parts := strings.SplitN(res, ",", 2)
+	if len(parts) != 2 {
+		return 0, 0, fmt.Errorf("invalid response: %s", res)
+	}
+
+	ctlBand, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid control band: %s", parts[0])
+	}
+
+	pttBand, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid ptt band: %s", parts[1])
+	}
+
+	return ctlBand, pttBand, nil
+}
+
+func (r *Radio) GetControlBand() (int, error) {
+	ctlBand, _, err := r.getPttAndControl()
+	return ctlBand, err
+}
+
+func (r *Radio) GetPTTBand() (int, error) {
+	_, pttBand, err := r.getPttAndControl()
+	return pttBand, err
+}
