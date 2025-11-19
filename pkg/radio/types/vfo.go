@@ -23,6 +23,22 @@ import (
 */
 
 type (
+	DisplayVFO struct {
+		VFO       int
+		RxFreq    string
+		RxStep    string
+		Shift     string
+		Reverse   string
+		Tone      string
+		CTCSS     string
+		DCS       string
+		ToneFreq  string
+		CTCSSFreq string
+		DCSCode   string
+		Offset    string
+		Mode      string
+	}
+
 	VFO struct {
 		VFO       int
 		RxFreq    int
@@ -110,7 +126,24 @@ func (v VFO) Values() []string {
 	}
 }
 
-// FO 1,0145090000,0,0,0,0,0,0,08,08,000,00000000,0
+func (v VFO) Display() DisplayVFO {
+	return DisplayVFO{
+		VFO:       v.VFO,
+		RxFreq:    NewFrequencyMHz(&v.RxFreq).String(),
+		RxStep:    NewStepSize(&v.RxStep).String(),
+		Shift:     NewShift(&v.Shift).String(),
+		Reverse:   NewBool(&v.Reverse).String(),
+		Tone:      NewBool(&v.Tone).String(),
+		CTCSS:     NewBool(&v.CTCSS).String(),
+		DCS:       NewBool(&v.DCS).String(),
+		ToneFreq:  NewTone(&v.ToneFreq).String(),
+		CTCSSFreq: NewTone(&v.CTCSSFreq).String(),
+		DCSCode:   NewDCS(&v.DCSCode).String(),
+		Offset:    NewFrequencyMHz(&v.Offset).String(),
+		Mode:      NewMode(&v.Mode).String(),
+	}
+}
+
 func (v VFO) String() string {
 	return strings.Join([]string{
 		fmt.Sprintf("%d", v.VFO),
