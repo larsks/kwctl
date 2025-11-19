@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall"
@@ -24,8 +25,11 @@ type (
 	}
 )
 
-var ErrInvalidCommand = errors.New("invalid command")
-var ErrUnavailableCommand = errors.New("command unavailable")
+var (
+	ErrInvalidCommand     = errors.New("invalid command")
+	ErrUnavailableCommand = errors.New("command unavailable")
+	SupportedRadios       = []string{"TM-V71"}
+)
 
 func NewRadio(device string, bitrate int) *Radio {
 	return &Radio{
@@ -74,7 +78,7 @@ func (r *Radio) Close() error {
 // scheduler (used for goroutine preemption since Go 1.14).
 func (r *Radio) drainWithRetry() error {
 	const maxRetries = 10
-	for i := 0; i < maxRetries; i++ {
+	for range maxRetries {
 		err := r.port.Drain()
 		if err == nil {
 			return nil
@@ -99,15 +103,14 @@ func (r *Radio) SendCommand(cmd string, args ...string) (string, error) {
 		return "", fmt.Errorf("failed to flush %s: %w", r.device, err)
 	}
 
-	// Read and discard flush response (expect CR-delimited line like "?\r")
-	// This avoids hardcoded delays and works at any radio response speed
+	// Read and discard flush response.
 	flushBuf := make([]byte, 1)
 	for {
 		n, err := r.port.Read(flushBuf)
 		if err != nil || n == 0 {
 			break // Timeout or error - buffer was already empty
 		}
-		// Continue reading and discarding until we get CR or timeout
+		// Continue reading and discarding until we get timeout
 	}
 
 	// Step 2: Build and send the command
@@ -163,18 +166,19 @@ func (r *Radio) SendCommand(cmd string, args ...string) (string, error) {
 		return "", nil
 	}
 
-	r.logger.Debug("received response", "response", parts[1])
+	r.logger.Debug("parsed response", "response", parts[1])
 	return parts[1], nil
 }
 
+// Ensure that we are communicating with a supported radio.
 func (r *Radio) Check() error {
 	id, err := r.SendCommand("ID")
 	if err != nil {
 		return fmt.Errorf("failed to identify radio at %s: %w", r.device, err)
 	}
 
-	if id != "TM-V71" {
-		return fmt.Errorf("incompatible radio: want TM-V71, have %s", id)
+	if !slices.Contains(SupportedRadios, id) {
+		return fmt.Errorf("unsupported radio: %s", id)
 	}
 
 	return nil

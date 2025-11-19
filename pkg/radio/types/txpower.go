@@ -14,7 +14,7 @@ const (
 	TX_POWER_HIGH   TxPower = 0
 )
 
-var txpowerNames map[string]TxPower = map[string]TxPower{
+var txpowerNames = map[string]TxPower{
 	"high":   TX_POWER_HIGH,
 	"medium": TX_POWER_MEDIUM,
 	"low":    TX_POWER_LOW,
