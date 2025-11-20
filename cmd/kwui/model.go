@@ -9,34 +9,15 @@ import (
 	"github.com/larsks/kwctl/pkg/radio/types"
 )
 
-// RadioStatus represents the complete radio state
-type RadioStatus struct {
-	Vfos     [2]VfoStatus `json:"Vfos"`
-	PttVfo   int          `json:"PttVfo"`
-	CtlVfo   int          `json:"CtlVfo"`
-	BandMode string       `json:"BandMode"`
-}
-
-// VfoStatus represents the state of a single VFO
-type VfoStatus struct {
-	Vfo            types.DisplayVFO `json:"Vfo"`
-	ChannelNumber  int              `json:"ChannelNumber"`
-	ChannelName    string           `json:"ChannelName"`
-	TxPower        string           `json:"TxPower"`
-	Mode           string           `json:"Mode"`
-	SquelchSetting int              `json:"SquelchSetting"`
-	SquelchStatus  int              `json:"SquelchStatus"`
-}
-
 // statusUpdate represents a status update or error
 type statusUpdate struct {
-	status RadioStatus
+	status types.Status
 	err    error
 }
 
 // AppModel holds the application state
 type AppModel struct {
-	status      RadioStatus
+	status      types.Status
 	lastUpdate  time.Time
 	errorMsg    string
 	updateTimer *time.Ticker
@@ -111,7 +92,7 @@ func (m *AppModel) fetchAndSendStatus() {
 		return
 	}
 
-	var status RadioStatus
+	var status types.Status
 	if err := json.Unmarshal(output, &status); err != nil {
 		select {
 		case m.statusChan <- statusUpdate{err: err}:
