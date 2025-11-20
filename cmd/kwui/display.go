@@ -166,6 +166,10 @@ func (a *App) handleKeyPress(keysym sdl.Keysym) {
 		a.running = false
 	case sdl.K_TAB:
 		a.toggleVFO()
+	case sdl.K_LEFT:
+		a.cycleMode(-1) // Previous mode
+	case sdl.K_RIGHT:
+		a.cycleMode(1) // Next mode
 	}
 }
 
@@ -192,6 +196,48 @@ func (a *App) executeVfoCommand(vfo int) {
 			a.logger.Error("failed to switch VFO", "vfo", vfo, "error", err)
 		} else {
 			a.logger.Info("switched VFO", "vfo", vfo)
+		}
+	}()
+}
+
+// cycleMode cycles through VFO modes (vfo, memory, call, wx)
+func (a *App) cycleMode(direction int) {
+	modes := []string{"vfo", "memory", "call", "wx"}
+
+	// Get current control VFO and its mode
+	ctlVfo := a.model.status.CtlVfo
+	currentMode := a.model.status.Vfos[ctlVfo].Mode
+
+	// Find current mode index
+	currentIdx := 0
+	for i, mode := range modes {
+		if mode == currentMode {
+			currentIdx = i
+			break
+		}
+	}
+
+	// Calculate new mode index with wraparound
+	newIdx := (currentIdx + direction + len(modes)) % len(modes)
+	newMode := modes[newIdx]
+
+	// Execute mode change command
+	a.executeModeCommand(ctlVfo, newMode)
+}
+
+// executeModeCommand executes the kwctl mode command asynchronously
+func (a *App) executeModeCommand(vfo int, mode string) {
+	if a.model.kwctl == nil {
+		a.logger.Error("kwctl not initialized, cannot change mode")
+		return
+	}
+
+	// Execute asynchronously to avoid blocking UI
+	go func() {
+		if err := a.model.kwctl.Run("--vfo", fmt.Sprintf("%d", vfo), "mode", mode); err != nil {
+			a.logger.Error("failed to change mode", "vfo", vfo, "mode", mode, "error", err)
+		} else {
+			a.logger.Info("changed mode", "vfo", vfo, "mode", mode)
 		}
 	}()
 }
@@ -327,7 +373,7 @@ func (a *App) drawStatusBar() {
 	if a.model.errorMsg != "" {
 		a.drawText("ERROR: "+a.model.errorMsg, a.fontSmall, colorAmber, 20, y)
 	} else {
-		helpText := "[TAB] Toggle VFO  [Q]/[ESC] Exit"
+		helpText := "[TAB] Toggle VFO  [←/→] Mode  [Q]/[ESC] Exit"
 		a.drawText(helpText, a.fontSmall, colorAmberDim, 20, y)
 
 		// Draw last update time
