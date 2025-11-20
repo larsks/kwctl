@@ -11,9 +11,10 @@ import (
 
 // RadioStatus represents the complete radio state
 type RadioStatus struct {
-	Vfos   [2]VfoStatus `json:"Vfos"`
-	PttVfo int          `json:"PttVfo"`
-	CtlVfo int          `json:"CtlVfo"`
+	Vfos     [2]VfoStatus `json:"Vfos"`
+	PttVfo   int          `json:"PttVfo"`
+	CtlVfo   int          `json:"CtlVfo"`
+	BandMode string       `json:"BandMode"`
 }
 
 // VfoStatus represents the state of a single VFO

@@ -298,6 +298,17 @@ func (a *App) render() {
 func (a *App) drawVfoPanel(vfoIdx int, x, y, width, height int32) {
 	vfo := a.model.status.Vfos[vfoIdx]
 
+	// Determine if this VFO is inactive (single band mode, not control VFO)
+	isInactive := a.model.status.BandMode == "single" && vfoIdx != a.model.status.CtlVfo
+
+	// Calculate colors based on inactive state
+	labelColor := colorAmberGlow
+	freqColor := colorAmber
+	if isInactive {
+		labelColor = colorBorder
+		freqColor = colorBorder
+	}
+
 	// Draw panel border
 	borderColor := colorBorder
 	if vfoIdx == a.model.status.CtlVfo {
@@ -307,22 +318,22 @@ func (a *App) drawVfoPanel(vfoIdx int, x, y, width, height int32) {
 
 	// Draw VFO label
 	label := fmt.Sprintf("VFO %c", 'A'+vfoIdx)
-	a.drawText(label, a.fontMedium, colorAmberGlow, x+10, y+5)
+	a.drawText(label, a.fontMedium, labelColor, x+10, y+5)
 
 	// Draw status indicators (PTT and CTL) as buttons
 	indicatorX := x + 90
 	if vfoIdx == a.model.status.PttVfo {
-		a.drawIndicatorButton("PTT", indicatorX, y+5, true)
+		a.drawIndicatorButton("PTT", indicatorX, y+5, true, isInactive)
 		indicatorX += 65
 	}
 	if vfoIdx == a.model.status.CtlVfo {
-		a.drawIndicatorButton("CTL", indicatorX, y+5, true)
+		a.drawIndicatorButton("CTL", indicatorX, y+5, true, isInactive)
 	}
 
 	// Draw frequency (large display)
 	freqY := y + 50
 	freqText := a.formatFrequency(vfo.Vfo.RxFreq)
-	a.drawText(freqText, a.fontLarge, colorAmber, x+20, freqY)
+	a.drawText(freqText, a.fontLarge, freqColor, x+20, freqY)
 	// Draw MHz label with smaller font below the frequency
 	a.drawText("MHz", a.fontSmall, colorAmberDim, x+25, freqY+80)
 
@@ -354,31 +365,33 @@ func (a *App) drawVfoPanel(vfoIdx int, x, y, width, height int32) {
 	}
 
 	// Draw mode buttons (moved down to avoid overlap with TONE label)
-	a.drawModeButtons(vfo.Mode, x+20, y+height-70)
+	a.drawModeButtons(vfo.Mode, x+20, y+height-70, isInactive)
 }
 
 // drawIndicatorButton renders a single indicator button (PTT, CTL)
-func (a *App) drawIndicatorButton(label string, x, y int32, active bool) {
+func (a *App) drawIndicatorButton(label string, x, y int32, active bool, dimmed bool) {
 	buttonWidth := int32(55)
 	buttonHeight := int32(24)
 
 	// Draw button with appropriate style
 	color := colorBorder
-	if active {
+	if active && !dimmed {
 		color = colorAmber
 	}
-	a.drawRect(x, y, buttonWidth, buttonHeight, color, active)
+	a.drawRect(x, y, buttonWidth, buttonHeight, color, active && !dimmed)
 
 	// Draw text with appropriate color
 	textColor := colorAmberDim
-	if active {
+	if active && !dimmed {
 		textColor = colorBackground
+	} else if dimmed {
+		textColor = colorBorder
 	}
 	a.drawText(label, a.fontSmall, textColor, x+8, y+4)
 }
 
 // drawModeButtons renders the VFO mode selection buttons
-func (a *App) drawModeButtons(currentMode string, x, y int32) {
+func (a *App) drawModeButtons(currentMode string, x, y int32, dimmed bool) {
 	modes := []string{"vfo", "memory", "call", "wx"}
 	buttonWidth := int32(70)
 	buttonHeight := int32(30)
@@ -387,15 +400,17 @@ func (a *App) drawModeButtons(currentMode string, x, y int32) {
 	for i, mode := range modes {
 		bx := x + int32(i)*(buttonWidth+spacing)
 		color := colorBorder
-		if mode == currentMode {
+		if mode == currentMode && !dimmed {
 			color = colorAmber
 		}
-		a.drawRect(bx, y, buttonWidth, buttonHeight, color, mode == currentMode)
+		a.drawRect(bx, y, buttonWidth, buttonHeight, color, mode == currentMode && !dimmed)
 
 		// Center text in button
 		textColor := colorAmberDim
-		if mode == currentMode {
+		if mode == currentMode && !dimmed {
 			textColor = colorBackground
+		} else if dimmed {
+			textColor = colorBorder
 		}
 		a.drawText(mode, a.fontSmall, textColor, bx+10, y+7)
 	}
