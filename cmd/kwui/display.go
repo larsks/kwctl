@@ -238,8 +238,12 @@ func (a *App) drawVfoPanel(vfoIdx int, x, y, width, height int32) {
 	a.drawText(fmt.Sprintf("TX Power: %s", vfo.TxPower), a.fontSmall, colorAmberDim, x+20, infoY+50)
 	a.drawText(fmt.Sprintf("Shift: %s", vfo.Vfo.Shift), a.fontSmall, colorAmberDim, x+20, infoY+75)
 
-	if vfo.Vfo.Tone == "true" {
-		a.drawText(fmt.Sprintf("TONE: %s Hz", vfo.Vfo.ToneFreq), a.fontSmall, colorAmberDim, x+20, infoY+100)
+	if vfo.Vfo.Tone == "true" || vfo.Vfo.CTCSS == "true" {
+		toneText := fmt.Sprintf("Tone: %s Hz", vfo.Vfo.ToneFreq)
+		if vfo.Vfo.CTCSS == "true" {
+			toneText = fmt.Sprintf("%s/%s", toneText, vfo.Vfo.CTCSSFreq)
+		}
+		a.drawText(toneText, a.fontSmall, colorAmberDim, x+20, infoY+100)
 	}
 
 	// Draw mode buttons (moved down to avoid overlap with TONE label)
