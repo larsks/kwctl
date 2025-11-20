@@ -452,3 +452,26 @@ func (r *Radio) MicDown() error {
 	_, err := r.SendCommand("DW")
 	return err
 }
+
+func (r *Radio) GetBandMode() (types.BandMode, error) {
+	res, err := r.SendCommand("DL")
+	if err != nil {
+		return 0, fmt.Errorf("failed to read band mode: %w", err)
+	}
+
+	mode, err := strconv.Atoi(res)
+	if err != nil {
+		return 0, fmt.Errorf("unable to parse band mode response: %w", err)
+	}
+
+	return types.BandMode(mode), nil
+}
+
+func (r *Radio) SetBandMode(mode types.BandMode) error {
+	_, err := r.SendCommand("DL", fmt.Sprintf("%d", mode))
+	if err != nil {
+		return fmt.Errorf("failed to set band mode: %w", err)
+	}
+
+	return nil
+}
