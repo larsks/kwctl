@@ -12,13 +12,13 @@ import (
 
 // resolveFontPath resolves a font name to a file path using fontconfig
 // It tries the requested font first, then falls back to the provided alternatives
-func resolveFontPath(fontName string, fallbacks []string) (string, error) {
+func resolveFontPath(fontName string, fallbacks []string, logger *slog.Logger) (string, error) {
 	finder := sysfont.NewFinder(nil)
 
 	// Try the requested font first
 	font := finder.Match(fontName)
 	if font != nil && font.Filename != "" {
-		slog.Info("resolved font", "requested", fontName, "path", font.Filename)
+		logger.Info("resolved font", "requested", fontName, "path", font.Filename)
 		return font.Filename, nil
 	}
 
@@ -26,7 +26,7 @@ func resolveFontPath(fontName string, fallbacks []string) (string, error) {
 	for _, fallback := range fallbacks {
 		font = finder.Match(fallback)
 		if font != nil && font.Filename != "" {
-			slog.Warn("using fallback font", "requested", fontName, "fallback", fallback, "path", font.Filename)
+			logger.Warn("using fallback font", "requested", fontName, "fallback", fallback, "path", font.Filename)
 			return font.Filename, nil
 		}
 	}
@@ -52,14 +52,16 @@ type App struct {
 	fontMedium *ttf.Font
 	fontSmall  *ttf.Font
 	running    bool
+	logger     *slog.Logger
 }
 
 // NewApp creates a new application instance
-func NewApp(renderer *sdl.Renderer, kwctlCmd string) *App {
+func NewApp(renderer *sdl.Renderer, kwctlCmd string, logger *slog.Logger) *App {
 	return &App{
 		renderer: renderer,
-		model:    NewAppModel(kwctlCmd),
+		model:    NewAppModel(kwctlCmd, logger),
 		running:  true,
+		logger:   logger,
 	}
 }
 
@@ -79,12 +81,13 @@ func (a *App) Init() error {
 			"Courier",         // macOS fallback
 			"monospace",       // Generic monospace alias
 		},
+		a.logger,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to find monospace font: %w", err)
 	}
 
-	slog.Info("using font", "path", fontPath)
+	a.logger.Info("using font", "path", fontPath)
 
 	a.fontLarge, err = ttf.OpenFont(fontPath, 72)
 	if err != nil {
@@ -161,13 +164,36 @@ func (a *App) handleKeyPress(keysym sdl.Keysym) {
 	switch keysym.Sym {
 	case sdl.K_q, sdl.K_ESCAPE:
 		a.running = false
-	case sdl.K_a:
-		// Switch to VFO A (not implemented yet - would call kwctl command)
-		slog.Info("VFO A selected")
-	case sdl.K_b:
-		// Switch to VFO B (not implemented yet - would call kwctl command)
-		slog.Info("VFO B selected")
+	case sdl.K_TAB:
+		a.toggleVFO()
 	}
+}
+
+// toggleVFO switches between VFO A (0) and VFO B (1)
+func (a *App) toggleVFO() {
+	// Determine new VFO (toggle between 0 and 1)
+	currentVfo := a.model.status.CtlVfo
+	newVfo := 1 - currentVfo // 0 -> 1, 1 -> 0
+
+	// Execute kwctl vfo command
+	a.executeVfoCommand(newVfo)
+}
+
+// executeVfoCommand executes the kwctl vfo command asynchronously
+func (a *App) executeVfoCommand(vfo int) {
+	if a.model.kwctl == nil {
+		a.logger.Error("kwctl not initialized, cannot switch VFO")
+		return
+	}
+
+	// Execute asynchronously to avoid blocking UI
+	go func() {
+		if err := a.model.kwctl.Run("vfo", fmt.Sprintf("%d", vfo)); err != nil {
+			a.logger.Error("failed to switch VFO", "vfo", vfo, "error", err)
+		} else {
+			a.logger.Info("switched VFO", "vfo", vfo)
+		}
+	}()
 }
 
 // render draws the entire UI
@@ -301,7 +327,7 @@ func (a *App) drawStatusBar() {
 	if a.model.errorMsg != "" {
 		a.drawText("ERROR: "+a.model.errorMsg, a.fontSmall, colorAmber, 20, y)
 	} else {
-		helpText := "[A] VFO A  [B] VFO B  [Q]/[ESC] Exit"
+		helpText := "[TAB] Toggle VFO  [Q]/[ESC] Exit"
 		a.drawText(helpText, a.fontSmall, colorAmberDim, 20, y)
 
 		// Draw last update time

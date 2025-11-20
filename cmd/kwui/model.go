@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"os/exec"
 	"time"
 
-	shellquote "github.com/kballard/go-shellquote"
 	"github.com/larsks/kwctl/pkg/radio/types"
 )
 
@@ -41,18 +39,32 @@ type AppModel struct {
 	lastUpdate  time.Time
 	errorMsg    string
 	updateTimer *time.Ticker
-	kwctlCmd    string
+	kwctl       *KwCtl
 	statusChan  chan statusUpdate
 	stopChan    chan struct{}
+	logger      *slog.Logger
 }
 
 // NewAppModel creates a new application model
-func NewAppModel(kwctlCmd string) *AppModel {
+func NewAppModel(kwctlCmd string, logger *slog.Logger) *AppModel {
+	kwctl, err := NewKwCtl(kwctlCmd, logger)
+	if err != nil {
+		logger.Error("failed to parse kwctl command", "error", err)
+		// Return a model with nil kwctl - errors will be handled in fetchAndSendStatus
+		return &AppModel{
+			updateTimer: time.NewTicker(1 * time.Second),
+			statusChan:  make(chan statusUpdate, 1),
+			stopChan:    make(chan struct{}),
+			logger:      logger,
+		}
+	}
+
 	return &AppModel{
 		updateTimer: time.NewTicker(1 * time.Second),
-		kwctlCmd:    kwctlCmd,
+		kwctl:       kwctl,
 		statusChan:  make(chan statusUpdate, 1), // Buffered to avoid blocking
 		stopChan:    make(chan struct{}),
+		logger:      logger,
 	}
 }
 
@@ -79,31 +91,17 @@ func (m *AppModel) pollStatus() {
 
 // fetchAndSendStatus fetches status and sends it to the channel (non-blocking)
 func (m *AppModel) fetchAndSendStatus() {
-	// Parse the command line string into arguments
-	args, err := shellquote.Split(m.kwctlCmd)
-	if err != nil {
-		// Send error to channel (non-blocking)
+	// Check if kwctl was initialized successfully
+	if m.kwctl == nil {
 		select {
-		case m.statusChan <- statusUpdate{err: fmt.Errorf("failed to parse kwctl command: %w", err)}:
+		case m.statusChan <- statusUpdate{err: fmt.Errorf("kwctl not initialized")}:
 		default:
 		}
 		return
 	}
 
-	if len(args) == 0 {
-		select {
-		case m.statusChan <- statusUpdate{err: fmt.Errorf("empty kwctl command")}:
-		default:
-		}
-		return
-	}
-
-	// Append "status" to the command arguments
-	args = append(args, "status")
-
-	// Execute the command
-	cmd := exec.Command(args[0], args[1:]...)
-	output, err := cmd.Output()
+	// Execute the status command
+	output, err := m.kwctl.RunWithOutput("status")
 	if err != nil {
 		select {
 		case m.statusChan <- statusUpdate{err: err}:
@@ -132,7 +130,7 @@ func (m *AppModel) fetchAndSendStatus() {
 func (m *AppModel) HandleStatusUpdate(update statusUpdate) {
 	if update.err != nil {
 		m.errorMsg = update.err.Error()
-		slog.Warn("status update failed", "error", update.err)
+		m.logger.Warn("status update failed", "error", update.err)
 		return
 	}
 

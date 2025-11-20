@@ -17,15 +17,22 @@ const (
 func main() {
 	// Parse command-line flags
 	kwctlCmd := flag.StringP("kwctl-command", "k", getDefaultKwctlCmd(), "command line to execute kwctl (e.g., 'ssh radio kwctl')")
+	verbose := flag.BoolP("verbose", "v", false, "enable verbose logging")
 	flag.Parse()
 
+	// Configure log level based on verbose flag
+	logLevel := slog.LevelInfo
+	if *verbose {
+		logLevel = slog.LevelDebug
+	}
+
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+		Level: logLevel,
 	}))
 	slog.SetDefault(logger)
 
-	if err := run(*kwctlCmd); err != nil {
-		slog.Error("application error", "error", err)
+	if err := run(*kwctlCmd, logger); err != nil {
+		logger.Error("application error", "error", err)
 		os.Exit(1)
 	}
 }
@@ -38,12 +45,12 @@ func getDefaultKwctlCmd() string {
 	return "kwctl"
 }
 
-func run(kwctlCmd string) error {
+func run(kwctlCmd string, logger *slog.Logger) error {
 	windowFlags := uint32(sdl.WINDOW_SHOWN)
 
 	// Try to initialize SDL with appropriate video driver for console
 	if os.Getenv("SDL_VIDEODRIVER") == "" && os.Getenv("DISPLAY") == "" && os.Getenv("WAYLAND_DISPLAY") == "" {
-		slog.Info("on console, attempting to use kmsdrm driver")
+		logger.Info("on console, attempting to use kmsdrm driver")
 		os.Setenv("SDL_VIDEODRIVER", "kmsdrm")
 		windowFlags = sdl.WINDOW_FULLSCREEN
 	}
@@ -71,10 +78,10 @@ func run(kwctlCmd string) error {
 	if err != nil {
 		return err
 	}
-	slog.Info("using software renderer for KMSDRM compatibility")
+	logger.Info("using software renderer for KMSDRM compatibility")
 	defer renderer.Destroy()
 
-	app := NewApp(renderer, kwctlCmd)
+	app := NewApp(renderer, kwctlCmd, logger)
 	if err := app.Init(); err != nil {
 		return err
 	}
