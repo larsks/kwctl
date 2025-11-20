@@ -26,6 +26,9 @@ COMPILE =	GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build -o $@ -ldflags "
 
 all: $(BINS)
 
+lint:
+	golangci-lint run
+
 kwctl: $(KWCTL)
 
 kwui: $(KWUI)
