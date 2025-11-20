@@ -170,6 +170,10 @@ func (a *App) handleKeyPress(keysym sdl.Keysym) {
 		a.cycleMode(-1) // Previous mode
 	case sdl.K_RIGHT:
 		a.cycleMode(1) // Next mode
+	case sdl.K_UP:
+		a.handleUpDown(-1) // Up
+	case sdl.K_DOWN:
+		a.handleUpDown(1) // Down
 	}
 }
 
@@ -238,6 +242,37 @@ func (a *App) executeModeCommand(vfo int, mode string) {
 			a.logger.Error("failed to change mode", "vfo", vfo, "mode", mode, "error", err)
 		} else {
 			a.logger.Info("changed mode", "vfo", vfo, "mode", mode)
+		}
+	}()
+}
+
+// handleUpDown handles up/down arrow keys (works in all modes)
+func (a *App) handleUpDown(direction int) {
+	// Map direction to command string
+	var directionStr string
+	if direction < 0 {
+		directionStr = "up"
+	} else {
+		directionStr = "down"
+	}
+
+	// Execute up/down command
+	a.executeUpDownCommand(directionStr)
+}
+
+// executeUpDownCommand executes the kwctl up/down command asynchronously
+func (a *App) executeUpDownCommand(direction string) {
+	if a.model.kwctl == nil {
+		a.logger.Error("kwctl not initialized, cannot execute up/down")
+		return
+	}
+
+	// Execute asynchronously to avoid blocking UI
+	go func() {
+		if err := a.model.kwctl.Run(direction); err != nil {
+			a.logger.Error("failed to execute up/down", "direction", direction, "error", err)
+		} else {
+			a.logger.Info("executed up/down", "direction", direction)
 		}
 	}()
 }
@@ -373,7 +408,7 @@ func (a *App) drawStatusBar() {
 	if a.model.errorMsg != "" {
 		a.drawText("ERROR: "+a.model.errorMsg, a.fontSmall, colorAmber, 20, y)
 	} else {
-		helpText := "[TAB] Toggle VFO  [←/→] Mode  [Q]/[ESC] Exit"
+		helpText := "[TAB] Toggle VFO  [←/→] Mode  [↑/↓] Channel  [Q]/[ESC] Exit"
 		a.drawText(helpText, a.fontSmall, colorAmberDim, 20, y)
 
 		// Draw last update time
