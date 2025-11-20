@@ -11,10 +11,14 @@ GOLDFLAGS = \
 
 GOFILES = $(shell go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}}{{"\n"}}{{end}}' ./...)
 
-all: kwctl
+all: kwctl kwui
 
 kwctl: $(GOFILES)
 	go build -o $@ -ldflags "$(GOLDFLAGS)" ./cmd/kwctl
 
+.PHONY: kwui
+kwui: $(GOFILES)
+	go build -o $@ -ldflags "$(GOLDFLAGS)" ./cmd/kwui
+
 clean:
-	rm -f kwctl
+	rm -f kwctl kwui
