@@ -442,3 +442,13 @@ func (r *Radio) GetStatus() (types.Status, error) {
 
 	return status, nil
 }
+
+func (r *Radio) MicUp() error {
+	_, err := r.SendCommand("UP")
+	return err
+}
+
+func (r *Radio) MicDown() error {
+	_, err := r.SendCommand("DW")
+	return err
+}
