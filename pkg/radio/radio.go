@@ -391,3 +391,54 @@ func (r *Radio) GetPTTBand() (int, error) {
 	_, pttBand, err := r.getPttAndControl()
 	return pttBand, err
 }
+
+// GetStatus returns information about the state of the radio, suitable for
+// use in a gui or web ui.
+func (r *Radio) GetStatus() (types.Status, error) {
+	var status types.Status
+
+	for vfoNum := range 2 {
+		vfoString := fmt.Sprintf("%d", vfoNum)
+		vfo, err := r.GetVFO(vfoString)
+		if err != nil {
+			return types.Status{}, fmt.Errorf("failed to get vfo info: %w", err)
+		}
+		status.Vfos[vfoNum].Vfo = vfo.Display()
+
+		txpower, err := r.GetTxPower(vfoString)
+		if err != nil {
+			return types.Status{}, fmt.Errorf("failed to get tx power: %w", err)
+		}
+		status.Vfos[vfoNum].TxPower = txpower.String()
+
+		mode, err := r.GetVFOMode(vfoString)
+		if err != nil {
+			return types.Status{}, fmt.Errorf("failed to get vfo mode: %w", err)
+		}
+		status.Vfos[vfoNum].Mode = mode.String()
+
+		if mode == types.VFO_MODE_MEMORY {
+			channel, err := r.GetCurrentChannel(vfoString)
+			if err != nil {
+				return types.Status{}, fmt.Errorf("failed to get channel number: %w", err)
+			}
+			status.Vfos[vfoNum].ChannelNumber = channel.Number
+			status.Vfos[vfoNum].ChannelName = channel.Name
+		}
+	}
+
+	pttVfo, err := r.GetPTTBand()
+	if err != nil {
+		return types.Status{}, fmt.Errorf("failed to get ptt vfo: %w", err)
+	}
+
+	ctlVfo, err := r.GetControlBand()
+	if err != nil {
+		return types.Status{}, fmt.Errorf("failed to get control vfo: %w", err)
+	}
+
+	status.PttVfo = pttVfo
+	status.CtlVfo = ctlVfo
+
+	return status, nil
+}

@@ -58,48 +58,10 @@ func (c *StatusCommand) Init() error {
 }
 
 func (c *StatusCommand) Run(r *radio.Radio, _ config.Context, args []string) error {
-	var status radioStatus
-
-	for vfoNum := range 2 {
-		vfoString := fmt.Sprintf("%d", vfoNum)
-		vfo, err := r.GetVFO(vfoString)
-		if err != nil {
-			return fmt.Errorf("failed to get vfo info: %w", err)
-		}
-		status.Vfos[vfoNum].Vfo = vfo.Display()
-
-		txpower, err := r.GetTxPower(vfoString)
-		if err != nil {
-			return fmt.Errorf("failed to get tx power: %w", err)
-		}
-		status.Vfos[vfoNum].TxPower = txpower.String()
-
-		mode, err := r.GetVFOMode(vfoString)
-		if err != nil {
-			return fmt.Errorf("failed to get vfo mode: %w", err)
-		}
-		status.Vfos[vfoNum].Mode = mode.String()
-
-		channel, err := r.GetCurrentChannelNumber(vfoString)
-		if err != nil {
-			return fmt.Errorf("failed to get channel number: %w", err)
-		}
-		status.Vfos[vfoNum].Channel = channel
-	}
-
-	pttVfo, err := r.GetPTTBand()
+	status, err := r.GetStatus()
 	if err != nil {
-		return fmt.Errorf("failed to get ptt vfo: %w", err)
+		return fmt.Errorf("failed to get status: %w", err)
 	}
-
-	ctlVfo, err := r.GetControlBand()
-	if err != nil {
-		return fmt.Errorf("failed to get control vfo: %w", err)
-	}
-
-	status.PttVfo = pttVfo
-	status.CtlVfo = ctlVfo
-
 	jsonData, err := json.Marshal(status)
 	if err != nil {
 		return fmt.Errorf("failed to marshal JSON: %w", err)
