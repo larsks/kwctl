@@ -200,13 +200,17 @@ func (a *App) drawVfoPanel(vfoIdx int, x, y, width, height int32) {
 
 	// Draw VFO label
 	label := fmt.Sprintf("VFO %c", 'A'+vfoIdx)
+	a.drawText(label, a.fontMedium, colorAmberGlow, x+10, y+5)
+
+	// Draw status indicators (PTT and CTL) as buttons
+	indicatorX := x + 90
 	if vfoIdx == a.model.status.PttVfo {
-		label += " [TX]"
+		a.drawIndicatorButton("PTT", indicatorX, y+5, true)
+		indicatorX += 65
 	}
 	if vfoIdx == a.model.status.CtlVfo {
-		label += " [CTL]"
+		a.drawIndicatorButton("CTL", indicatorX, y+5, true)
 	}
-	a.drawText(label, a.fontMedium, colorAmberGlow, x+10, y+5)
 
 	// Draw frequency (large display)
 	freqY := y + 50
@@ -228,6 +232,26 @@ func (a *App) drawVfoPanel(vfoIdx int, x, y, width, height int32) {
 
 	// Draw mode buttons (moved down to avoid overlap with TONE label)
 	a.drawModeButtons(vfo.Mode, x+20, y+height-70)
+}
+
+// drawIndicatorButton renders a single indicator button (PTT, CTL)
+func (a *App) drawIndicatorButton(label string, x, y int32, active bool) {
+	buttonWidth := int32(55)
+	buttonHeight := int32(24)
+
+	// Draw button with appropriate style
+	color := colorBorder
+	if active {
+		color = colorAmber
+	}
+	a.drawRect(x, y, buttonWidth, buttonHeight, color, active)
+
+	// Draw text with appropriate color
+	textColor := colorAmberDim
+	if active {
+		textColor = colorBackground
+	}
+	a.drawText(label, a.fontSmall, textColor, x+8, y+4)
 }
 
 // drawModeButtons renders the VFO mode selection buttons
