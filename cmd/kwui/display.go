@@ -53,6 +53,7 @@ type App struct {
 	fontSmall  *ttf.Font
 	running    bool
 	logger     *slog.Logger
+	showHelp   bool
 }
 
 // NewApp creates a new application instance
@@ -161,9 +162,22 @@ func (a *App) handleEvents() {
 
 // handleKeyPress handles keyboard input
 func (a *App) handleKeyPress(keysym sdl.Keysym) {
+	// If help is showing, any key dismisses it without executing commands
+	if a.showHelp {
+		a.showHelp = false
+		return
+	}
+
 	switch keysym.Sym {
 	case sdl.K_q, sdl.K_ESCAPE:
 		a.running = false
+	case sdl.K_SLASH:
+		// Check if shift is held for '?'
+		if keysym.Mod&sdl.KMOD_SHIFT != 0 {
+			a.showHelp = true
+		}
+	case sdl.K_d:
+		a.toggleBandMode()
 	case sdl.K_TAB:
 		a.toggleVFO()
 	case sdl.K_LEFT:
@@ -200,6 +214,38 @@ func (a *App) executeVfoCommand(vfo int) {
 			a.logger.Error("failed to switch VFO", "vfo", vfo, "error", err)
 		} else {
 			a.logger.Info("switched VFO", "vfo", vfo)
+		}
+	}()
+}
+
+// toggleBandMode toggles between single and dual band mode
+func (a *App) toggleBandMode() {
+	// Determine new band mode (toggle between "single" and "dual")
+	currentMode := a.model.status.BandMode
+	var newMode string
+	if currentMode == "single" {
+		newMode = "dual"
+	} else {
+		newMode = "single"
+	}
+
+	// Execute kwctl bands command
+	a.executeBandModeCommand(newMode)
+}
+
+// executeBandModeCommand executes the kwctl bands command asynchronously
+func (a *App) executeBandModeCommand(mode string) {
+	if a.model.kwctl == nil {
+		a.logger.Error("kwctl not initialized, cannot change band mode")
+		return
+	}
+
+	// Execute asynchronously to avoid blocking UI
+	go func() {
+		if err := a.model.kwctl.Run("bands", mode); err != nil {
+			a.logger.Error("failed to change band mode", "mode", mode, "error", err)
+		} else {
+			a.logger.Info("changed band mode", "mode", mode)
 		}
 	}()
 }
@@ -289,6 +335,11 @@ func (a *App) render() {
 
 	// Draw status bar
 	a.drawStatusBar()
+
+	// Draw help overlay if active
+	if a.showHelp {
+		a.drawHelpOverlay()
+	}
 
 	// Present the rendered frame
 	a.renderer.Present()
@@ -423,7 +474,7 @@ func (a *App) drawStatusBar() {
 	if a.model.errorMsg != "" {
 		a.drawText("ERROR: "+a.model.errorMsg, a.fontSmall, colorAmber, 20, y)
 	} else {
-		helpText := "[TAB] Toggle VFO  [←/→] Mode  [↑/↓] Channel  [Q]/[ESC] Exit"
+		helpText := "[Q]/[ESC] Exit  [?] Help"
 		a.drawText(helpText, a.fontSmall, colorAmberDim, 20, y)
 
 		// Draw last update time
@@ -432,6 +483,59 @@ func (a *App) drawStatusBar() {
 			a.drawText(updateText, a.fontSmall, colorAmberDim, 600, y)
 		}
 	}
+}
+
+// drawHelpOverlay renders the help overlay panel
+func (a *App) drawHelpOverlay() {
+	// Draw semi-transparent background overlay
+	overlayRect := sdl.Rect{X: 0, Y: 0, W: windowWidth, H: windowHeight}
+	a.renderer.SetDrawBlendMode(sdl.BLENDMODE_BLEND)
+	a.renderer.SetDrawColor(0, 0, 0, 180) // Semi-transparent black
+	a.renderer.FillRect(&overlayRect)
+	a.renderer.SetDrawBlendMode(sdl.BLENDMODE_NONE)
+
+	// Draw centered help panel
+	panelWidth := int32(600)
+	panelHeight := int32(320)
+	panelX := (windowWidth - panelWidth) / 2
+	panelY := (windowHeight - panelHeight) / 2
+
+	// Draw panel background
+	a.renderer.SetDrawColor(colorBackground.R, colorBackground.G, colorBackground.B, colorBackground.A)
+	a.renderer.FillRect(&sdl.Rect{X: panelX, Y: panelY, W: panelWidth, H: panelHeight})
+
+	// Draw panel border
+	a.drawRect(panelX, panelY, panelWidth, panelHeight, colorAmber, false)
+
+	// Draw title
+	titleY := panelY + 20
+	a.drawText("Keyboard Commands", a.fontMedium, colorAmber, panelX+180, titleY)
+
+	// Draw command list
+	commandY := titleY + 50
+	lineHeight := int32(30)
+
+	commands := []struct {
+		key  string
+		desc string
+	}{
+		{"TAB", "Toggle VFO (A/B)"},
+		{"←/→", "Cycle Mode (VFO/Memory/Call/WX)"},
+		{"↑/↓", "Up/Down"},
+		{"D", "Toggle Band Mode (Single/Dual)"},
+		{"Q/ESC", "Exit"},
+		{"?", "Show/Hide Help"},
+	}
+
+	for i, cmd := range commands {
+		y := commandY + int32(i)*lineHeight
+		a.drawText(cmd.key, a.fontSmall, colorAmberGlow, panelX+100, y)
+		a.drawText(cmd.desc, a.fontSmall, colorAmberDim, panelX+200, y)
+	}
+
+	// Draw dismissal hint
+	hintY := panelY + panelHeight - 40
+	a.drawText("Press any key to dismiss", a.fontSmall, colorAmberDim, panelX+180, hintY)
 }
 
 // drawText renders text at the specified position
