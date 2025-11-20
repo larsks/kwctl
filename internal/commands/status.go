@@ -20,7 +20,8 @@ type (
 
 	vfoStatus struct {
 		Vfo            types.DisplayVFO
-		Channel        int
+		ChannelNumber  int
+		ChannelName    string
 		TxPower        string
 		Mode           string
 		SquelchSetting int
