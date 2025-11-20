@@ -55,7 +55,7 @@ type Tone struct {
 	valuePtr *int // Pointer to the tone value being configured
 }
 
-var toneForward map[int]string = map[int]string{
+var ToneValues map[int]string = map[int]string{
 	0:  "67.0",
 	1:  "69.3",
 	2:  "71.9",
@@ -100,7 +100,7 @@ var toneForward map[int]string = map[int]string{
 	41: "254.1",
 }
 
-var toneReverse map[string]int = helpers.ReverseMap(toneForward)
+var ToneValuesReversed map[string]int = helpers.ReverseMap(ToneValues)
 
 func NewTone(tonePtr *int) *Tone {
 	return &Tone{valuePtr: tonePtr}
@@ -110,7 +110,7 @@ func (t *Tone) String() string {
 	if t.valuePtr == nil {
 		return ""
 	}
-	tone, exists := toneForward[*t.valuePtr]
+	tone, exists := ToneValues[*t.valuePtr]
 	if !exists {
 		return ""
 	}
@@ -119,7 +119,7 @@ func (t *Tone) String() string {
 
 // Set parses a tone name and stores it as an integer code
 func (t *Tone) Set(value string) error {
-	val, exists := toneReverse[value]
+	val, exists := ToneValuesReversed[value]
 	if !exists {
 		return fmt.Errorf("invalid tone: %s", value)
 	}
