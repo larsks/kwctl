@@ -21,7 +21,8 @@ type RadioStatus struct {
 // VfoStatus represents the state of a single VFO
 type VfoStatus struct {
 	Vfo            types.DisplayVFO `json:"Vfo"`
-	Channel        int              `json:"Channel"`
+	ChannelNumber  int              `json:"ChannelNumber"`
+	ChannelName    string           `json:"ChannelName"`
 	TxPower        string           `json:"TxPower"`
 	Mode           string           `json:"Mode"`
 	SquelchSetting int              `json:"SquelchSetting"`

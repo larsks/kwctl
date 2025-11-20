@@ -222,7 +222,14 @@ func (a *App) drawVfoPanel(vfoIdx int, x, y, width, height int32) {
 	// Draw mode info
 	infoY := freqY + 110
 	a.drawText(fmt.Sprintf("Mode: %s", vfo.Mode), a.fontSmall, colorAmberDim, x+20, infoY)
-	a.drawText(fmt.Sprintf("Channel: %d", vfo.Channel), a.fontSmall, colorAmberDim, x+20, infoY+25)
+
+	// Draw channel with optional name
+	channelText := fmt.Sprintf("Channel: %d", vfo.ChannelNumber)
+	if vfo.ChannelName != "" {
+		channelText += " " + vfo.ChannelName
+	}
+	a.drawText(channelText, a.fontSmall, colorAmberDim, x+20, infoY+25)
+
 	a.drawText(fmt.Sprintf("TX Power: %s", vfo.TxPower), a.fontSmall, colorAmberDim, x+20, infoY+50)
 	a.drawText(fmt.Sprintf("Shift: %s", vfo.Vfo.Shift), a.fontSmall, colorAmberDim, x+20, infoY+75)
 
