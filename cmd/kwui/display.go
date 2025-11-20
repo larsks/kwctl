@@ -177,8 +177,8 @@ func (a *App) render() {
 	a.renderer.Clear()
 
 	// Draw VFO panels (title removed to free up vertical space)
-	a.drawVfoPanel(0, 20, 40, 380, 360)
-	a.drawVfoPanel(1, 420, 40, 380, 360)
+	a.drawVfoPanel(0, 10, 40, 380, 360)
+	a.drawVfoPanel(1, 410, 40, 380, 360)
 
 	// Draw status bar
 	a.drawStatusBar()
@@ -224,7 +224,7 @@ func (a *App) drawVfoPanel(vfoIdx int, x, y, width, height int32) {
 	a.drawText(fmt.Sprintf("Mode: %s", vfo.Mode), a.fontSmall, colorAmberDim, x+20, infoY)
 
 	// Draw channel with optional name
-	channelText := fmt.Sprintf("Channel: %d", vfo.ChannelNumber)
+	channelText := fmt.Sprintf("Channel: %s", vfo.ChannelNumber)
 	if vfo.ChannelName != "" {
 		channelText += " " + vfo.ChannelName
 	}
