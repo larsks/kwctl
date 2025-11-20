@@ -3,7 +3,7 @@ package types
 type (
 	VfoStatus struct {
 		Vfo            DisplayVFO
-		ChannelNumber  string
+		ChannelNumber  int
 		ChannelName    string
 		TxPower        string
 		Mode           string
