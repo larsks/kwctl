@@ -11,6 +11,7 @@ type (
 		Vfo     string
 		Device  string
 		Pretty  bool
+		NoCheck bool
 	}
 
 	Context struct {

@@ -27,6 +27,7 @@ func init() {
 	flag.StringVarP(&ctx.Config.Vfo, "vfo", "", helpers.GetEnvWithDefault("KWCTL_VFO", "0"), "select vfo on which to operate")
 	flag.StringVarP(&ctx.Config.Device, "device", "d", helpers.GetEnvWithDefault("KWCTL_DEVICE", "/dev/ttyS0"), "serial device")
 	flag.BoolVarP(&ctx.Config.Pretty, "pretty", "p", helpers.GetEnvWithDefault("KWCTL_PRETTY", false), "pretty print output")
+	flag.BoolVarP(&ctx.Config.NoCheck, "no-check", "n", helpers.GetEnvWithDefault("KWCTL_NOCHECK", false), "Skip radio check")
 }
 
 func main() {
@@ -67,9 +68,11 @@ func main() {
 			}
 			defer r.Close() //nolint:errcheck
 
-			if err := r.Check(); err != nil {
-				ctx.Logger.Error("radio check failed", "device", ctx.Config.Device, "error", err)
-				os.Exit(1)
+			if !ctx.Config.NoCheck {
+				if err := r.Check(); err != nil {
+					ctx.Logger.Error("radio check failed", "device", ctx.Config.Device, "error", err)
+					os.Exit(1)
+				}
 			}
 		}
 
