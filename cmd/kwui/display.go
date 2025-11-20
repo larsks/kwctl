@@ -224,9 +224,14 @@ func (a *App) drawVfoPanel(vfoIdx int, x, y, width, height int32) {
 	a.drawText(fmt.Sprintf("Mode: %s", vfo.Mode), a.fontSmall, colorAmberDim, x+20, infoY)
 
 	// Draw channel with optional name
-	channelText := fmt.Sprintf("Channel: %s", vfo.ChannelNumber)
-	if vfo.ChannelName != "" {
-		channelText += " " + vfo.ChannelName
+	var channelText string
+	if vfo.Mode == "memory" {
+		channelText = fmt.Sprintf("Channel: %d", vfo.ChannelNumber)
+		if vfo.ChannelName != "" {
+			channelText += " " + vfo.ChannelName
+		}
+	} else {
+		channelText = "Channel: ---"
 	}
 	a.drawText(channelText, a.fontSmall, colorAmberDim, x+20, infoY+25)
 
