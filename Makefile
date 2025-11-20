@@ -15,3 +15,6 @@ all: kwctl
 
 kwctl: $(GOFILES)
 	go build -o $@ -ldflags "$(GOLDFLAGS)" ./cmd/kwctl
+
+clean:
+	rm -f kwctl
