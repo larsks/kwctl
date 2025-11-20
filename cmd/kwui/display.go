@@ -129,7 +129,7 @@ func (a *App) Cleanup() {
 }
 
 // Run starts the main application loop
-func (a *App) Run() error {
+func (a *App) Run() {
 	for a.running {
 		a.handleEvents()
 
@@ -143,7 +143,6 @@ func (a *App) Run() error {
 		a.render()
 		sdl.Delay(16) // ~60 FPS
 	}
-	return nil
 }
 
 // handleEvents processes SDL events
@@ -556,7 +555,7 @@ func (a *App) drawText(text string, font *ttf.Font, color sdl.Color, x, y int32)
 	}
 	defer texture.Destroy()
 
-	a.renderer.Copy(texture, nil, &sdl.Rect{X: x, Y: y, W: surface.W, H: surface.H})
+	a.renderer.Copy(texture, nil, &sdl.Rect{X: x, Y: y, W: surface.W, H: surface.H}) //nolint:errcheck
 }
 
 // drawRect draws a rectangle, optionally filled

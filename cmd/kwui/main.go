@@ -87,5 +87,6 @@ func run(kwctlCmd string, logger *slog.Logger) error {
 	}
 	defer app.Cleanup()
 
-	return app.Run()
+	app.Run()
+	return nil
 }
