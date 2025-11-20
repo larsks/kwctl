@@ -221,7 +221,7 @@ func (a *App) drawVfoPanel(vfoIdx int, x, y, width, height int32) {
 
 	// Draw mode info
 	infoY := freqY + 110
-	a.drawText(fmt.Sprintf("Mode: %s", vfo.Mode), a.fontSmall, colorAmberDim, x+20, infoY)
+	//a.drawText(fmt.Sprintf("Mode: %s", vfo.Mode), a.fontSmall, colorAmberDim, x+20, infoY)
 
 	// Draw channel with optional name
 	var channelText string
