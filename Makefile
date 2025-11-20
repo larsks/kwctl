@@ -1,8 +1,6 @@
 PKG = $(shell grep '^module ' go.mod | cut -f2 -d ' ')
 
 VERSION = $(shell git describe --tags --exact-match 2> /dev/null || echo dev)
-COMMIT = $(shell git rev-parse --short=10 HEAD)
-DATE = $(shell date -u +"%Y-%m-%dT%H:%M:%S")
 
 GOFILES = $(shell go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}}{{"\n"}}{{end}}' ./...)
 
@@ -16,13 +14,14 @@ KWCTL = kwctl$(buildSuffix)
 
 BINS = $(KWCTL)
 
-COMPILE =	GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build -o $@
+COMPILE =	go build -o $@ -ldflags '-X $(PKG)/internal/version.Version=$(VERSION)'
 
 all: $(BINS)
 
 lint:
 	golangci-lint run
 
+.PHONY: kwctl
 kwctl: $(KWCTL)
 
 $(KWCTL): $(GOFILES)
@@ -30,3 +29,6 @@ $(KWCTL): $(GOFILES)
 
 clean:
 	rm -f $(BINS)
+
+realclean:
+	rm -f kwctl-* kwctl
