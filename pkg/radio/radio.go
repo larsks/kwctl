@@ -440,6 +440,13 @@ func (r *Radio) GetStatus() (types.Status, error) {
 	status.PttVfo = pttVfo
 	status.CtlVfo = ctlVfo
 
+	bandMode, err := r.GetBandMode()
+	if err != nil {
+		return types.Status{}, fmt.Errorf("failed to get band mode: %w", err)
+	}
+
+	status.BandMode = bandMode.String()
+
 	return status, nil
 }
 

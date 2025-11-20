@@ -12,8 +12,9 @@ type (
 	}
 
 	Status struct {
-		Vfos   [2]VfoStatus
-		PttVfo int
-		CtlVfo int
+		Vfos     [2]VfoStatus
+		PttVfo   int
+		CtlVfo   int
+		BandMode string
 	}
 )
