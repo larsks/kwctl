@@ -11,14 +11,31 @@ GOLDFLAGS = \
 
 GOFILES = $(shell go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}}{{"\n"}}{{end}}' ./...)
 
-all: kwctl kwui
+GOOS   ?= $(shell go env GOOS)
+GOARCH ?= $(shell go env GOARCH)
+GOARM  ?= $(shell go env GOARM)
 
-kwctl: $(GOFILES)
-	go build -o $@ -ldflags "$(GOLDFLAGS)" ./cmd/kwctl
+buildSuffix ?= -$(GOOS)-$(GOARCH)
+
+KWCTL = kwctl$(buildSuffix)
+KWUI = kwui$(buildSuffix)
+
+BINS = $(KWCTL) $(KWUI)
+
+COMPILE =	GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) go build -o $@ -ldflags "$(GOLDFLAGS)"
+
+all: $(BINS)
+
+kwctl: $(KWCTL)
+
+kwui: $(KWUI)
+
+$(KWCTL): $(GOFILES)
+	$(COMPILE) ./cmd/kwctl
 
 .PHONY: kwui
-kwui: $(GOFILES)
-	go build -o $@ -ldflags "$(GOLDFLAGS)" ./cmd/kwui
+$(KWUI): $(GOFILES)
+	$(COMPILE) ./cmd/kwui
 
 clean:
-	rm -f kwctl kwui
+	rm -f $(BINS)
