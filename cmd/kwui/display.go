@@ -301,7 +301,7 @@ func (a *App) drawStatusBar() {
 	if a.model.errorMsg != "" {
 		a.drawText("ERROR: "+a.model.errorMsg, a.fontSmall, colorAmber, 20, y)
 	} else {
-		helpText := "[Q]uit  [A] VFO A  [B] VFO B  [ESC] Exit"
+		helpText := "[A] VFO A  [B] VFO B  [Q]/[ESC] Exit"
 		a.drawText(helpText, a.fontSmall, colorAmberDim, 20, y)
 
 		// Draw last update time
