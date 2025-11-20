@@ -39,6 +39,15 @@ func getDefaultKwctlCmd() string {
 }
 
 func run(kwctlCmd string) error {
+	windowFlags := uint32(sdl.WINDOW_SHOWN)
+
+	// Try to initialize SDL with appropriate video driver for console
+	if os.Getenv("SDL_VIDEODRIVER") == "" && os.Getenv("DISPLAY") == "" && os.Getenv("WAYLAND_DISPLAY") == "" {
+		slog.Info("on console, attempting to use kmsdrm driver")
+		os.Setenv("SDL_VIDEODRIVER", "kmsdrm")
+		windowFlags = sdl.WINDOW_FULLSCREEN
+	}
+
 	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
 		return err
 	}
@@ -50,17 +59,19 @@ func run(kwctlCmd string) error {
 		sdl.WINDOWPOS_UNDEFINED,
 		windowWidth,
 		windowHeight,
-		sdl.WINDOW_SHOWN,
+		windowFlags,
 	)
 	if err != nil {
 		return err
 	}
 	defer window.Destroy()
 
-	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
+	// Use software renderer for KMSDRM compatibility
+	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_SOFTWARE)
 	if err != nil {
 		return err
 	}
+	slog.Info("using software renderer for KMSDRM compatibility")
 	defer renderer.Destroy()
 
 	app := NewApp(renderer, kwctlCmd)
