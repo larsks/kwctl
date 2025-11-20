@@ -10,28 +10,11 @@ import (
 	"github.com/larsks/kwctl/internal/config"
 	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/pkg/radio"
-	"github.com/larsks/kwctl/pkg/radio/types"
 )
 
 type (
 	StatusCommand struct {
 		flags *flag.FlagSet
-	}
-
-	vfoStatus struct {
-		Vfo            types.DisplayVFO
-		ChannelNumber  int
-		ChannelName    string
-		TxPower        string
-		Mode           string
-		SquelchSetting int
-		SquelchStatus  int
-	}
-
-	radioStatus struct {
-		Vfos   [2]vfoStatus
-		PttVfo int
-		CtlVfo int
 	}
 )
 
