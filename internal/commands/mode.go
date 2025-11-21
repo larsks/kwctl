@@ -7,7 +7,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
-	"github.com/larsks/kwctl/internal/helpers"
+	"github.com/larsks/gobot/tools"
 	"github.com/larsks/kwctl/pkg/radio"
 	"github.com/larsks/kwctl/pkg/radio/types"
 )
@@ -31,7 +31,7 @@ func (c *ModeCommand) Init() error {
 	c.flags.SetOutput(os.Stdout)
 	c.flags.Usage = func() {
 		//nolint:errcheck
-		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+		fmt.Fprint(c.flags.Output(), tools.Unindent(`
 			Usage: kwctl mode [vfo|memory|call|wx]
 
 			Get or set the operating mode for the selected VFO.

@@ -9,7 +9,7 @@ import (
 
 	"github.com/larsks/kwctl/internal/config"
 	"github.com/larsks/kwctl/internal/formatters"
-	"github.com/larsks/kwctl/internal/helpers"
+	"github.com/larsks/gobot/tools"
 	"github.com/larsks/kwctl/pkg/radio"
 	"github.com/larsks/kwctl/pkg/radio/types"
 )
@@ -33,7 +33,7 @@ func (c *ChannelListCommand) Init() error {
 	c.flags = flag.NewFlagSet("channel-list", flag.ContinueOnError)
 	c.flags.SetOutput(os.Stdout)
 	c.flags.Usage = func() {
-		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+		fmt.Fprint(c.flags.Output(), tools.Unindent(`
 			Usage: kwctl channel-list [options] <range> [<range> [...]]
 
 			List a range of channels.
@@ -65,7 +65,7 @@ func (c *ChannelListCommand) Run(r *radio.Radio, ctx config.Context, args []stri
 	}
 
 	for _, arg := range ranges {
-		for channelNumber, err := range helpers.RangeIterator(arg) {
+		for channelNumber, err := range tools.RangeIterator(arg) {
 			ctx.Logger.Info("getting information for channel", "channel", channelNumber)
 			if err != nil {
 				return fmt.Errorf("invalid range: %w", err)

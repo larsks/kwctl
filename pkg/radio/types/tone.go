@@ -48,7 +48,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/larsks/kwctl/internal/helpers"
+	"github.com/larsks/gobot/tools"
 )
 
 type Tone struct {
@@ -100,7 +100,7 @@ var ToneValues map[int]string = map[int]string{
 	41: "254.1",
 }
 
-var ToneValuesReversed map[string]int = helpers.ReverseMap(ToneValues)
+var ToneValuesReversed map[string]int = tools.ReverseMap(ToneValues)
 
 func NewTone(tonePtr *int) *Tone {
 	return &Tone{valuePtr: tonePtr}

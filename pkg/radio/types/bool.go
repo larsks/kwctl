@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/larsks/kwctl/internal/helpers"
+	"github.com/larsks/gobot/tools"
 )
 
 type Bool struct {
@@ -15,7 +15,7 @@ var boolForward map[int]string = map[int]string{
 	1: "true",
 }
 
-var boolReverse map[string]int = helpers.ReverseMap(boolForward)
+var boolReverse map[string]int = tools.ReverseMap(boolForward)
 
 func NewBool(boolPtr *int) *Bool {
 	return &Bool{valuePtr: boolPtr}

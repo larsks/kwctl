@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/larsks/kwctl/internal/helpers"
+	"github.com/larsks/gobot/tools"
 )
 
 type Shift struct {
@@ -16,7 +16,7 @@ var shiftForward map[int]string = map[int]string{
 	2: "down",
 }
 
-var shiftReverse map[string]int = helpers.ReverseMap(shiftForward)
+var shiftReverse map[string]int = tools.ReverseMap(shiftForward)
 
 func NewShift(shiftPtr *int) *Shift {
 	return &Shift{valuePtr: shiftPtr}

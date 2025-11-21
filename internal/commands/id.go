@@ -7,7 +7,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
-	"github.com/larsks/kwctl/internal/helpers"
+	"github.com/larsks/gobot/tools"
 	"github.com/larsks/kwctl/pkg/radio"
 )
 
@@ -30,7 +30,7 @@ func (c *IDCommand) Init() error {
 	c.flags = flag.NewFlagSet("id", flag.ContinueOnError)
 	c.flags.SetOutput(os.Stdout)
 	c.flags.Usage = func() {
-		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+		fmt.Fprint(c.flags.Output(), tools.Unindent(`
 			Usage: kwctl id
 
 			Display the radio ID response.

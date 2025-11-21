@@ -8,9 +8,10 @@ import (
 
 	flag "github.com/spf13/pflag"
 
+	"github.com/larsks/gobot/tools"
+
 	"github.com/larsks/kwctl/internal/commands"
 	"github.com/larsks/kwctl/internal/config"
-	"github.com/larsks/kwctl/internal/helpers"
 	"github.com/larsks/kwctl/pkg/radio"
 )
 
@@ -22,12 +23,12 @@ func init() {
 	ctx.Logger = slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelWarn,
 	}))
-	flag.IntVarP(&ctx.Config.Bps, "bps", "b", helpers.GetEnvWithDefault("KWCTL_BPS", 9600), "serial port speed")
+	flag.IntVarP(&ctx.Config.Bps, "bps", "b", tools.GetenvWithDefault("KWCTL_BPS", 9600), "serial port speed")
 	flag.CountVarP(&ctx.Config.Verbose, "verbose", "v", "increase logging verbosity")
-	flag.StringVarP(&ctx.Config.Vfo, "vfo", "", helpers.GetEnvWithDefault("KWCTL_VFO", "0"), "select vfo on which to operate")
-	flag.StringVarP(&ctx.Config.Device, "device", "d", helpers.GetEnvWithDefault("KWCTL_DEVICE", "/dev/ttyS0"), "serial device")
-	flag.BoolVarP(&ctx.Config.Pretty, "pretty", "p", helpers.GetEnvWithDefault("KWCTL_PRETTY", false), "pretty print output")
-	flag.BoolVarP(&ctx.Config.NoCheck, "no-check", "n", helpers.GetEnvWithDefault("KWCTL_NOCHECK", false), "Skip radio check")
+	flag.StringVarP(&ctx.Config.Vfo, "vfo", "", tools.GetenvWithDefault("KWCTL_VFO", "0"), "select vfo on which to operate")
+	flag.StringVarP(&ctx.Config.Device, "device", "d", tools.GetenvWithDefault("KWCTL_DEVICE", "/dev/ttyS0"), "serial device")
+	flag.BoolVarP(&ctx.Config.Pretty, "pretty", "p", tools.GetenvWithDefault("KWCTL_PRETTY", false), "pretty print output")
+	flag.BoolVarP(&ctx.Config.NoCheck, "no-check", "n", tools.GetenvWithDefault("KWCTL_NOCHECK", false), "Skip radio check")
 }
 
 func main() {
