@@ -4,6 +4,7 @@ go 1.24.5
 
 require (
 	github.com/jedib0t/go-pretty/v6 v6.7.1
+	github.com/larsks/gobot v0.1.5
 	github.com/spf13/pflag v1.0.10
 	go.bug.st/serial v1.6.4
 )

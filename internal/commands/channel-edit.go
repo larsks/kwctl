@@ -10,7 +10,7 @@ import (
 
 	"github.com/larsks/kwctl/internal/config"
 	"github.com/larsks/kwctl/internal/formatters"
-	"github.com/larsks/kwctl/internal/helpers"
+	"github.com/larsks/gobot/tools"
 	"github.com/larsks/kwctl/pkg/radio"
 	"github.com/larsks/kwctl/pkg/radio/types"
 )
@@ -53,7 +53,7 @@ func (c *ChannelEditCommand) Init() error {
 
 	c.flags.SetOutput(os.Stdout)
 	c.flags.Usage = func() {
-		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+		fmt.Fprint(c.flags.Output(), tools.Unindent(`
 			Usage: kwctl channel-edit [options] <channel>
 
 			Edit channel configuration.

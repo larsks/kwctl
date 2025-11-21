@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/larsks/kwctl/internal/helpers"
+	"github.com/larsks/gobot/tools"
 )
 
 type Mode struct {
@@ -16,7 +16,7 @@ var modeForward map[int]string = map[int]string{
 	2: "AM",
 }
 
-var modeReverse map[string]int = helpers.ReverseMap(modeForward)
+var modeReverse map[string]int = tools.ReverseMap(modeForward)
 
 func NewMode(modePtr *int) *Mode {
 	return &Mode{valuePtr: modePtr}

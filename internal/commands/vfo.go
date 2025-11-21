@@ -8,7 +8,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	"github.com/larsks/kwctl/internal/config"
-	"github.com/larsks/kwctl/internal/helpers"
+	"github.com/larsks/gobot/tools"
 	"github.com/larsks/kwctl/pkg/radio"
 )
 
@@ -31,7 +31,7 @@ func (c *VFOCommand) Init() error {
 	c.flags = flag.NewFlagSet("vfo", flag.ContinueOnError)
 	c.flags.SetOutput(os.Stdout)
 	c.flags.Usage = func() {
-		fmt.Fprint(c.flags.Output(), helpers.Unindent(`
+		fmt.Fprint(c.flags.Output(), tools.Unindent(`
 			Usage: kwctl vfo [0|1]
 
 			Get or set ptt/control VFO.

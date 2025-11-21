@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/larsks/kwctl/internal/helpers"
+	"github.com/larsks/gobot/tools"
 )
 
 type StepSize struct {
@@ -24,7 +24,7 @@ var stepSizeForward map[int]string = map[int]string{
 	0xA: "100",
 }
 
-var stepSizeReverse map[string]int = helpers.ReverseMap(stepSizeForward)
+var stepSizeReverse map[string]int = tools.ReverseMap(stepSizeForward)
 
 func NewStepSize(hzPtr *int) *StepSize {
 	return &StepSize{valuePtr: hzPtr}

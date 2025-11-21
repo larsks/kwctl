@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/larsks/kwctl/internal/helpers"
+	"github.com/larsks/gobot/tools"
 )
 
 type DCS struct {
@@ -117,7 +117,7 @@ var dcsForward map[int]string = map[int]string{
 	103: "754",
 }
 
-var dcsReverse map[string]int = helpers.ReverseMap(dcsForward)
+var dcsReverse map[string]int = tools.ReverseMap(dcsForward)
 
 func NewDCS(dcsPtr *int) *DCS {
 	return &DCS{valuePtr: dcsPtr}
